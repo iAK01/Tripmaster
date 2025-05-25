@@ -90,6 +90,7 @@ export const itemsDatabase = {
                     essential: true,
                     description: 'For morning routine, aeropress etc'
             }
+            }
         },
         electronics: {
             icon: '💻',
@@ -681,7 +682,7 @@ export const itemsDatabase = {
             'Resistance bands': { multiplier: 0, essential: false },
             'Sports headphones': { multiplier: 0, essential: false }
         },
-            watersports: {
+        watersports: {
         'Swimsuits': { multiplier: 0.4, essential: true, min: 2 },
         'Water shoes': { multiplier: 0, essential: true },
         'Waterproof phone case': { multiplier: 0, essential: true },
@@ -691,7 +692,7 @@ export const itemsDatabase = {
         'Quick-dry towel': { multiplier: 0, essential: true },
         'Waterproof sunscreen': { multiplier: 0, essential: true }
     },
-    entertainment: {
+        entertainment: {
         'Evening attire': { multiplier: 0.3, essential: true },
         'Dress shoes': { multiplier: 0, essential: true },
         'Small evening bag': { multiplier: 0, essential: false },
@@ -699,7 +700,7 @@ export const itemsDatabase = {
         'Cash for shows/drinks': { multiplier: 0, essential: true },
         'Comfortable walking shoes': { multiplier: 0, essential: true }
     },
-    shopping: {
+        shopping: {
         'Extra suitcase/duffle bag': { multiplier: 0, essential: true },
         'Reusable shopping bags': { multiplier: 0.2, essential: true },
         'Comfortable walking shoes': { multiplier: 0, essential: true },
@@ -707,7 +708,7 @@ export const itemsDatabase = {
         'Currency for markets': { multiplier: 0, essential: false },
         'Luggage scale': { multiplier: 0, essential: false }
     },
-    family: {
+        family: {
         'Kid entertainment': { multiplier: 0.5, essential: true },
         'Snacks for kids': { multiplier: 1, essential: true },
         'First aid kit': { multiplier: 0, essential: true },
@@ -715,7 +716,7 @@ export const itemsDatabase = {
         'Wipes': { multiplier: 1, essential: true },
         'Portable games/toys': { multiplier: 0.3, essential: false }
     },
-    relaxation: {
+        relaxation: {
         'Books': { multiplier: 0.2, essential: true },
         'E-reader': { multiplier: 0, essential: false },
         'Journal': { multiplier: 0, essential: false },
@@ -723,10 +724,8 @@ export const itemsDatabase = {
         'Eye mask': { multiplier: 0, essential: false },
         'Meditation app': { multiplier: 0, essential: false },
         'Herbal tea': { multiplier: 0, essential: false }
-         }
-     }
-  },
-    
+        }
+},
     special_items: {
         baby_travel: {
             'Diapers': { multiplier: 6, essential: true },
