@@ -349,7 +349,54 @@ export const conditionalRules = {
                 'Sports accessories': { multiplier: 0, essential: false },
                 'Gym towel': { multiplier: 0.2, essential: false }
             }
+        },
+            watersports: {
+        category: 'water_sports_gear',
+        items: {
+            'Waterproof phone case': { multiplier: 0, essential: true },
+            'Quick-dry towel': { multiplier: 0, essential: true },
+            'Water shoes': { multiplier: 0, essential: true },
+            'Dry bag': { multiplier: 0, essential: true },
+            'Waterproof sunscreen': { multiplier: 0, essential: true }
         }
+    },
+    entertainment: {
+        category: 'entertainment_gear',
+        items: {
+            'Evening attire': { multiplier: 0.3, essential: true },
+            'Dress shoes': { multiplier: 0, essential: true },
+            'Small evening bag': { multiplier: 0, essential: false },
+            'Cash for venues': { multiplier: 0, essential: true }
+        }
+    },
+    shopping: {
+        category: 'shopping_gear',
+        items: {
+            'Extra luggage/duffle bag': { multiplier: 0, essential: true },
+            'Reusable shopping bags': { multiplier: 0.2, essential: true },
+            'Comfortable walking shoes': { multiplier: 0, essential: true },
+            'Luggage scale': { multiplier: 0, essential: false }
+        }
+    },
+    family: {
+        category: 'family_travel_gear',
+        items: {
+            'Kid entertainment': { multiplier: 0.5, essential: true },
+            'Extra snacks': { multiplier: 1, essential: true },
+            'Wipes': { multiplier: 1, essential: true },
+            'First aid kit': { multiplier: 0, essential: true }
+        }
+    },
+    relaxation: {
+        category: 'relaxation_gear',
+        items: {
+            'Books/e-reader': { multiplier: 0.2, essential: true },
+            'Journal': { multiplier: 0, essential: false },
+            'Comfortable loungewear': { multiplier: 0.4, essential: true },
+            'Eye mask': { multiplier: 0, essential: false }
+        }
+    }
+}
     },
     
     tripTypes: {
