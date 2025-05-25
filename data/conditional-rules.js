@@ -396,8 +396,7 @@ export const conditionalRules = {
             'Eye mask': { multiplier: 0, essential: false }
         }
     }
-}
-    },
+},
     
     tripTypes: {
         business: {
