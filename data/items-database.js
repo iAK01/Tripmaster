@@ -681,7 +681,55 @@ export const itemsDatabase = {
             'Water bottle': { multiplier: 0, essential: true },
             'Resistance bands': { multiplier: 0, essential: false },
             'Sports headphones': { multiplier: 0, essential: false }
-        }
+        },
+            watersports: {
+        'Swimsuits': { multiplier: 0.4, essential: true, min: 2 },
+        'Water shoes': { multiplier: 0, essential: true },
+        'Waterproof phone case': { multiplier: 0, essential: true },
+        'Dry bag': { multiplier: 0, essential: true },
+        'Snorkel gear': { multiplier: 0, essential: false },
+        'Rash guard': { multiplier: 0, essential: true },
+        'Quick-dry towel': { multiplier: 0, essential: true },
+        'Waterproof sunscreen': { multiplier: 0, essential: true }
+    },
+    
+    entertainment: {
+        'Evening attire': { multiplier: 0.3, essential: true },
+        'Dress shoes': { multiplier: 0, essential: true },
+        'Small evening bag': { multiplier: 0, essential: false },
+        'Nice accessories': { multiplier: 0, essential: false },
+        'Cash for shows/drinks': { multiplier: 0, essential: true },
+        'Comfortable walking shoes': { multiplier: 0, essential: true }
+    },
+    
+    shopping: {
+        'Extra suitcase/duffle bag': { multiplier: 0, essential: true },
+        'Reusable shopping bags': { multiplier: 0.2, essential: true },
+        'Comfortable walking shoes': { multiplier: 0, essential: true },
+        'Payment cards': { multiplier: 0, essential: true },
+        'Currency for markets': { multiplier: 0, essential: false },
+        'Luggage scale': { multiplier: 0, essential: false }
+    },
+    
+    family: {
+        'Kid entertainment': { multiplier: 0.5, essential: true },
+        'Snacks for kids': { multiplier: 1, essential: true },
+        'First aid kit': { multiplier: 0, essential: true },
+        'Extra kid clothes': { multiplier: 1.5, essential: true },
+        'Wipes': { multiplier: 1, essential: true },
+        'Portable games/toys': { multiplier: 0.3, essential: false }
+    },
+    
+    relaxation: {
+        'Books': { multiplier: 0.2, essential: true },
+        'E-reader': { multiplier: 0, essential: false },
+        'Journal': { multiplier: 0, essential: false },
+        'Comfortable loungewear': { multiplier: 0.4, essential: true },
+        'Eye mask': { multiplier: 0, essential: false },
+        'Meditation app': { multiplier: 0, essential: false },
+        'Herbal tea': { multiplier: 0, essential: false }
+    }
+}
     },
     
     special_items: {
