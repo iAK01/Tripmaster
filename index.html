@@ -1,677 +1,88 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TripMaster - Foundation Test</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
-        .test-section {
-            background: white;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border-left: 4px solid #4facfe;
-        }
-        .test-result {
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 6px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        .success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
-        .error { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
-        .info { background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8; }
-        .warning { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; }
-        
-        button {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 8px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        button:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
-        }
-        button:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        input, select {
-            padding: 10px;
-            margin: 8px;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #4facfe;
-            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
-        }
-        
-        .phrase-card {
-            background: #f8f9fa;
-            padding: 15px;
-            margin: 8px 0;
-            border-left: 4px solid #007bff;
-            border-radius: 6px;
-        }
-        .phrase-card .english { font-weight: 600; color: #495057; }
-        .phrase-card .local { font-size: 16px; color: #007bff; margin: 5px 0; }
-        .phrase-card .phonetic { font-style: italic; color: #6c757d; font-size: 14px; }
-        
-        .travel-intelligence {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            margin: 15px 0;
-            border-radius: 12px;
-        }
-        .intelligence-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 8px;
-        }
-        
-        .location-test {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin: 20px 0;
-        }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        .status-success { background: #28a745; }
-        .status-error { background: #dc3545; }
-        .status-warning { background: #ffc107; }
-        
-        h1 { color: #495057; text-align: center; margin-bottom: 30px; }
-        h2 { color: #495057; margin-bottom: 15px; }
-        h3 { color: #6c757d; margin-bottom: 10px; }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #4facfe;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        
-        @media (max-width: 768px) {
-            .location-test, .grid-2 {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <title>TripMaster - Complete Travel Companion</title>
+    <meta name="description" content="Unified travel planning with smart packing lists, itinerary management, and local intelligence">
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4facfe">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
-    <div class="container">
-        <h1>🧳 TripMaster Foundation Test</h1>
-        <p style="text-align: center; color: #6c757d; margin-bottom: 30px;">
-            Testing YOUR actual implementation files and data flow
-        </p>
-        
-        <!-- Test 1: Import Test -->
-        <div class="test-section">
-            <h2>📦 Test 1: Module Import Test</h2>
-            <p>Testing if all your files can be imported correctly.</p>
-            <button onclick="testImports()">Test File Imports</button>
-            <div id="import-result"></div>
-        </div>
+    <div class="app-container">
+        <!-- Navigation Component -->
+        <section id="navigation-section"></section>
 
-        <!-- Test 2: Countries Database (Your File) -->
-        <div class="test-section">
-            <h2>🌍 Test 2: Countries Database (YOUR Implementation)</h2>
-            <p>Testing your actual countries-database.js file.</p>
-            <button onclick="testYourCountriesDatabase()">Test Your Countries DB</button>
-            <button onclick="testCountryDropdown()">Test Dropdown Options</button>
-            <div id="countries-result"></div>
-        </div>
-
-        <!-- Test 3: Unified Data Model (Your File) -->
-        <div class="test-section">
-            <h2>📊 Test 3: Unified Data Model (YOUR Implementation)</h2>
-            <p>Testing your actual unified-data-model.js file.</p>
-            <button onclick="testYourDataModel()">Test Data Model</button>
-            <button onclick="testTripCreation()">Test Trip Creation</button>
-            <button onclick="testValidation()">Test Validation</button>
-            <div id="datamodel-result"></div>
-        </div>
-
-        <!-- Test 4: Storage Manager (Your Enhanced File) -->
-        <div class="test-section">
-            <h2>💾 Test 4: Storage Manager (YOUR Enhanced Implementation)</h2>
-            <p>Testing your actual storage-manager.js file.</p>
-            <div class="grid-2">
-                <div>
-                    <button onclick="testYourStorageManager()">Test Storage</button>
-                    <button onclick="testStorageHealth()">Check Health</button>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Overview Dashboard -->
+            <section id="overview-section" class="tab-content active">
+                <div class="overview-container">
+                    <!-- Overview component will render here -->
                 </div>
-                <div>
-                    <button onclick="testStorageOperations()">Test Operations</button>
-                    <button onclick="testStorageInfo()">Storage Info</button>
-                </div>
-            </div>
-            <div id="storage-result"></div>
-        </div>
+            </section>
 
-        <!-- Test 5: Location Service (Your File) -->
-        <div class="test-section">
-            <h2>📍 Test 5: Location Service (YOUR Implementation)</h2>
-            <p>Testing your actual location-service.js file with real geocoding.</p>
-            <div class="location-test">
-                <div>
-                    <h3>Origin Location</h3>
-                    <input type="text" id="origin-input" placeholder="Athens, Greece" value="Athens, Greece">
+            <!-- Trip Setup (Your existing enhanced setup) -->
+            <section id="setup-section" class="tab-content">
+                <div class="container">
+                    <div id="trip-setup-section"></div>
                 </div>
-                <div>
-                    <h3>Destination Location</h3>
-                    <input type="text" id="destination-input" placeholder="Paris, France" value="Paris, France">
+            </section>
+
+            <!-- Itinerary Management -->
+            <section id="itinerary-section" class="tab-content">
+                <div class="container">
+                    <div class="content-placeholder">
+                        <h2>📅 Trip Itinerary</h2>
+                        <p>Day-by-day schedule and activities</p>
+                        <div class="coming-soon">Coming in Phase 2</div>
+                    </div>
                 </div>
-            </div>
-            <div style="text-align: center;">
-                <button onclick="testYourLocationService()">🧠 Test Real Location Service</button>
-                <button onclick="testLocationParsing()">📍 Test Location Parsing</button>
-            </div>
-            <div id="location-result"></div>
-        </div>
+            </section>
 
-        <!-- Test 6: Integration with Existing Components -->
-        <div class="test-section">
-            <h2>🔗 Test 6: Integration with Existing Packing System</h2>
-            <p>Testing integration between your new unified system and existing packing components.</p>
-            <button onclick="testPackingIntegration()">🎒 Test Packing Integration</button>
-            <button onclick="testWeatherIntegration()">🌤️ Test Weather Integration</button>
-            <div id="integration-result"></div>
-        </div>
+            <!-- Packing Lists (Your existing enhanced components) -->
+            <section id="packing-section" class="tab-content">
+                <div class="container">
+                    <!-- Your existing weather/progress/checklist structure -->
+                    <div id="weather-display-section"></div>
+                    <div id="progress-tracking-section"></div>
+                    <div id="checklist-display-section"></div>
+                </div>
+            </section>
 
-        <!-- System Status -->
-        <div class="test-section">
-            <h2>⚡ System Status</h2>
-            <div id="system-status">
-                <p>Click "Test File Imports" to check system status...</p>
-            </div>
+            <!-- Local Information -->
+            <section id="local-info-section" class="tab-content">
+                <div class="container">
+                    <div class="content-placeholder">
+                        <h2>🗺️ Local Information</h2>
+                        <p>Language phrases, customs, emergency info</p>
+                        <div class="coming-soon">Coming in Phase 3</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Your existing Control Panel -->
+    <div id="control-panel"></div>
+
+    <!-- Your existing Notification Container -->
+    <div id="notification-container"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading your trip data...</p>
         </div>
     </div>
 
-    <script type="module">
-        // Import YOUR actual files
-        let countriesDatabase, UnifiedTripModel, createNewTrip, TripValidation, DataMigration;
-        let StorageManager, LocationService;
-        let systemStatus = {
-            countriesDb: false,
-            unifiedModel: false,
-            storageManager: false,
-            locationService: false,
-            validation: false
-        };
-
-        // Test imports of your actual files
-        window.testImports = async function() {
-            const result = document.getElementById('import-result');
-            result.innerHTML = '<div class="test-result info"><span class="loading"></span>Testing imports...</div>';
-            
-            const imports = [];
-            
-            try {
-                // Test countries database import
-                try {
-                    const countryModule = await import('./data/countries-database.js');
-                    countriesDatabase = countryModule.countriesDatabase;
-                    imports.push('✅ countries-database.js');
-                    systemStatus.countriesDb = true;
-                } catch (e) {
-                    imports.push(`❌ countries-database.js: ${e.message}`);
-                }
-
-                // Test unified data model import
-                try {
-                    const modelModule = await import('./data/unified-data-model.js');
-                    UnifiedTripModel = modelModule.UnifiedTripModel;
-                    createNewTrip = modelModule.createNewTrip;
-                    TripValidation = modelModule.TripValidation;
-                    DataMigration = modelModule.DataMigration;
-                    imports.push('✅ unified-data-model.js');
-                    systemStatus.unifiedModel = true;
-                    systemStatus.validation = true;
-                } catch (e) {
-                    imports.push(`❌ unified-data-model.js: ${e.message}`);
-                }
-
-                // Test storage manager import
-                try {
-                    const storageModule = await import('./utils/storage-manager.js');
-                    StorageManager = storageModule.StorageManager;
-                    imports.push('✅ storage-manager.js');
-                    systemStatus.storageManager = true;
-                } catch (e) {
-                    imports.push(`❌ storage-manager.js: ${e.message}`);
-                }
-
-                // Test location service import
-                try {
-                    const locationModule = await import('./utils/location-service.js');
-                    LocationService = locationModule.LocationService;
-                    imports.push('✅ location-service.js');
-                    systemStatus.locationService = true;
-                } catch (e) {
-                    imports.push(`❌ location-service.js: ${e.message}`);
-                }
-
-                result.innerHTML = `
-                    <div class="test-result ${imports.every(i => i.startsWith('✅')) ? 'success' : 'warning'}">
-                        📦 Import Results:<br>
-                        ${imports.join('<br>')}
-                    </div>
-                `;
-
-                updateSystemStatus();
-
-            } catch (error) {
-                result.innerHTML = `<div class="test-result error">❌ Import Error: ${error.message}</div>`;
-            }
-        };
-
-        // Test your countries database
-        window.testYourCountriesDatabase = function() {
-            const result = document.getElementById('countries-result');
-            if (!countriesDatabase) {
-                result.innerHTML = '<div class="test-result error">❌ Countries database not loaded. Run import test first.</div>';
-                return;
-            }
-
-            try {
-                const countries = countriesDatabase.dropdownList;
-                const metadata = countriesDatabase.getCountryMetadata('GR');
-                
-                result.innerHTML = `
-                    <div class="test-result success">
-                        ✅ YOUR Countries Database Working!<br>
-                        📊 Loaded ${countries.length} countries<br>
-                        🌍 Regions: ${[...new Set(countries.map(c => c.region))].join(', ')}<br>
-                        📋 Sample countries: ${countries.slice(0, 5).map(c => c.name).join(', ')}
-                    </div>
-                    <div class="test-result info">
-                        🇬🇷 Greece Metadata Test:<br>
-                        Currency: ${metadata.currency} (${metadata.currencySymbol})<br>
-                        Language: ${metadata.language}<br>
-                        Emergency: ${metadata.emergency}<br>
-                        Electrical: ${metadata.electricalPlug}<br>
-                        Timezone: ${metadata.timezone}
-                    </div>
-                `;
-            } catch (error) {
-                result.innerHTML = `<div class="test-result error">❌ Error: ${error.message}</div>`;
-            }
-        };
-
-        // Test dropdown functionality
-        window.testCountryDropdown = function() {
-            const result = document.getElementById('countries-result');
-            if (!countriesDatabase) return;
-
-            try {
-                const dropdownOptions = countriesDatabase.getDropdownOptions();
-                const groupedOptions = countriesDatabase.getGroupedDropdownOptions();
-                
-                result.innerHTML += `
-                    <div class="test-result info">
-                        📋 Dropdown Test:<br>
-                        Options: ${dropdownOptions.length}<br>
-                        Regions: ${Object.keys(groupedOptions).length}<br>
-                        Europe countries: ${groupedOptions['Europe']?.length || 0}<br>
-                        Sample: ${dropdownOptions.slice(0, 3).map(o => o.label).join(', ')}
-                    </div>
-                `;
-            } catch (error) {
-                result.innerHTML += `<div class="test-result error">❌ Dropdown Error: ${error.message}</div>`;
-            }
-        };
-
-        // Test your unified data model
-        window.testYourDataModel = function() {
-            const result = document.getElementById('datamodel-result');
-            if (!UnifiedTripModel || !createNewTrip) {
-                result.innerHTML = '<div class="test-result error">❌ Data model not loaded. Run import test first.</div>';
-                return;
-            }
-
-            try {
-                // Test model structure
-                const modelKeys = Object.keys(UnifiedTripModel);
-                
-                result.innerHTML = `
-                    <div class="test-result success">
-                        ✅ YOUR Unified Data Model Working!<br>
-                        📊 Main sections: ${modelKeys.join(', ')}<br>
-                        🗂️ Trip info fields: ${Object.keys(UnifiedTripModel.tripInfo).length}<br>
-                        🧳 Packing categories: ${Object.keys(UnifiedTripModel.packing.items).length}<br>
-                        📅 Has itinerary system: ${UnifiedTripModel.itinerary ? 'YES' : 'NO'}<br>
-                        🌤️ Has weather system: ${UnifiedTripModel.weather ? 'YES' : 'NO'}
-                    </div>
-                `;
-            } catch (error) {
-                result.innerHTML = `<div class="test-result error">❌ Error: ${error.message}</div>`;
-            }
-        };
-
-        // Test trip creation
-        window.testTripCreation = function() {
-            const result = document.getElementById('datamodel-result');
-            if (!createNewTrip) return;
-
-            try {
-                const trip = createNewTrip({
-                    name: 'Test Trip to Greece',
-                    destination: { 
-                        city: 'Athens', 
-                        countryCode: 'GR' 
-                    }
-                });
-                
-                result.innerHTML += `
-                    <div class="test-result success">
-                        ✅ Trip Creation Working!<br>
-                        🆔 Trip ID: ${trip.tripInfo.id}<br>
-                        📅 Created: ${new Date(trip.tripInfo.created).toLocaleString()}<br>
-                        🏛️ Destination: ${trip.tripInfo.destination?.city}<br>
-                        📊 Data size: ${JSON.stringify(trip).length} characters
-                    </div>
-                `;
-            } catch (error) {
-                result.innerHTML += `<div class="test-result error">❌ Creation Error: ${error.message}</div>`;
-            }
-        };
-
-        // Test validation
-        window.testValidation = function() {
-            const result = document.getElementById('datamodel-result');
-            if (!TripValidation) return;
-
-            try {
-                const validTrip = createNewTrip({
-                    destination: { city: 'Athens', countryCode: 'GR' },
-                    startDate: '2024-06-01',
-                    nights: 5,
-                    tripType: 'leisure'
-                });
-
-                const invalidTrip = createNewTrip(); // Empty trip
-
-                const validResult = TripValidation.isValidTrip(validTrip);
-                const invalidResult = TripValidation.isValidTrip(invalidTrip);
-                const errors = TripValidation.getValidationErrors(invalidTrip);
-
-                result.innerHTML += `
-                    <div class="test-result info">
-                        ✅ Validation System Working!<br>
-                        Valid trip test: ${validResult ? 'PASS' : 'FAIL'}<br>
-                        Invalid trip test: ${!invalidResult ? 'PASS' : 'FAIL'}<br>
-                        Error detection: ${errors.length} errors found<br>
-                        Errors: ${errors.join(', ') || 'None'}
-                    </div>
-                `;
-            } catch (error) {
-                result.innerHTML += `<div class="test-result error">❌ Validation Error: ${error.message}</div>`;
-            }
-        };
-
-        // Test your storage manager
-        window.testYourStorageManager = function() {
-            const result = document.getElementById('storage-result');
-            if (!StorageManager) {
-                result.innerHTML = '<div class="test-result error">❌ Storage manager not loaded. Run import test first.</div>';
-                return;
-            }
-
-            try {
-                const storage = new StorageManager();
-                const health = storage.getStorageHealth();
-                const storageTest = storage.testStorage();
-                
-                result.innerHTML = `
-                    <div class="test-result success">
-                        ✅ YOUR Storage Manager Working!<br>
-                        🔧 Storage test: ${storageTest ? 'PASS' : 'FAIL'}<br>
-                        💊 Health check: ${health.isWorking ? 'HEALTHY' : 'ISSUES'}<br>
-                        💾 Quota exceeded: ${health.quotaExceeded ? 'YES' : 'NO'}<br>
-                        🔄 Backup available: ${health.backupAvailable ? 'YES' : 'NO'}<br>
-                        🗂️ Corrupted data: ${health.corruptedData ? 'YES' : 'NO'}
-                    </div>
-                `;
-            } catch (error) {
-                result.innerHTML = `<div class="test-result error">❌ Error: ${error.message}</div>`;
-            }
-        };
-
-        // Test storage operations
-        window.testStorageOperations = function() {
-            const result = document.getElementById('storage-result');
-            if (!StorageManager || !createNewTrip) return;
-
-            try {
-                const storage = new StorageManager();
-                const testTrip = createNewTrip({
-                    name: 'Storage Test Trip',
-                    destination: { city: 'Paris', countryCode: 'FR' }
-                });
-
-                // Test save/load cycle
-                const saveResult = storage.saveTrip(testTrip);
-                const loadedTrip = storage.getCurrentTrip();
-                const saveToLibraryResult = storage.saveTripToLibrary('Test Trip', testTrip);
-
-                result.innerHTML += `
-                    <div class="test-result info">
-                        💾 Storage Operations Test:<br>
-                        Save trip: ${saveResult ? 'SUCCESS' : 'FAILED'}<br>
-                        Load trip: ${loadedTrip ? 'SUCCESS' : 'FAILED'}<br>
-                        Save to library: ${saveToLibraryResult.success ? 'SUCCESS' : 'FAILED'}<br>
-                        Library name: ${saveToLibraryResult.name || 'N/A'}
-                    </div>
-                `;
-            } catch (error) {
-                result.innerHTML += `<div class="test-result error">❌ Operations Error: ${error.message}</div>`;
-            }
-        };
-
-        // Test storage info
-        window.testStorageInfo = function() {
-            const result = document.getElementById('storage-result');
-            if (!StorageManager) return;
-
-            try {
-                const storage = new StorageManager();
-                const info = storage.getStorageInfo();
-                
-                result.innerHTML += `
-                    <div class="test-result info">
-                        📊 Storage Info:<br>
-                        Total size: ${info.totalSizeKB} KB<br>
-                        Trip count: ${info.tripCount}<br>
-                        Quota used: ${info.storageQuotaUsed}<br>
-                        Keys tracked: ${Object.keys(info.breakdown).length}
-                    </div>
-                `;
-            } catch (error) {
-                result.innerHTML += `<div class="test-result error">❌ Info Error: ${error.message}</div>`;
-            }
-        };
-
-        // Test your location service  
-        window.testYourLocationService = async function() {
-            const result = document.getElementById('location-result');
-            const origin = document.getElementById('origin-input').value;
-            const destination = document.getElementById('destination-input').value;
-            
-            if (!LocationService) {
-                result.innerHTML = '<div class="test-result error">❌ Location service not loaded. Run import test first.</div>';
-                return;
-            }
-
-            result.innerHTML = '<div class="test-result info"><span class="loading"></span>Testing YOUR Location Service with real APIs...</div>';
-            
-            try {
-                const locationService = new LocationService();
-                const enrichedData = await locationService.enrichTripLocations(origin, destination, 5, new Date());
-                
-                if (enrichedData.success) {
-                    result.innerHTML = `
-                        <div class="test-result success">
-                            ✅ YOUR Location Service Working!<br>
-                            🌍 Origin: ${enrichedData.origin.city}, ${enrichedData.origin.country}<br>
-                            🎯 Destination: ${enrichedData.destination.city}, ${enrichedData.destination.country}<br>
-                            📍 Geocoding: ${enrichedData.origin.geocodingSuccess && enrichedData.destination.geocodingSuccess ? 'SUCCESS' : 'PARTIAL'}
-                        </div>
-                        <div class="travel-intelligence">
-                            <h3>🧠 YOUR Travel Intelligence</h3>
-                            <div class="intelligence-item">
-                                <strong>🔌 Electrical:</strong> ${enrichedData.travelIntelligence.electrical.recommendation}
-                            </div>
-                            <div class="intelligence-item">
-                                <strong>💱 Currency:</strong> ${enrichedData.travelIntelligence.currency.recommendation}
-                            </div>
-                            <div class="intelligence-item">
-                                <strong>🗣️ Language:</strong> ${enrichedData.travelIntelligence.language.recommendation}
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    result.innerHTML = `
-                        <div class="test-result warning">
-                            ⚠️ Location service completed with issues:<br>
-                            Error: ${enrichedData.error}
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                result.innerHTML = `<div class="test-result error">❌ Error: ${error.message}</div>`;
-            }
-        };
-
-        // Test location parsing
-        window.testLocationParsing = function() {
-            const result = document.getElementById('location-result');
-            const origin = document.getElementById('origin-input').value;
-            
-            if (!LocationService) return;
-
-            try {
-                const locationService = new LocationService();
-                const parsed = locationService.parseLocationInput(origin);
-                
-                result.innerHTML += `
-                    <div class="test-result info">
-                        📍 Location Parsing Test:<br>
-                        Input: "${origin}"<br>
-                        City: ${parsed.city}<br>
-                        Country Code: ${parsed.countryCode}
-                    </div>
-                `;
-            } catch (error) {
-                result.innerHTML += `<div class="test-result error">❌ Parsing Error: ${error.message}</div>`;
-            }
-        };
-
-        // Test integration with existing packing system
-        window.testPackingIntegration = async function() {
-            const result = document.getElementById('integration-result');
-            
-            try {
-                // Test if we can create a trip and it integrates with existing packing
-                const trip = createNewTrip({
-                    name: 'Integration Test',
-                    destination: { city: 'Athens', countryCode: 'GR' },
-                    tripType: 'business',
-                    nights: 3
-                });
-
-                // Check if packing structure exists
-                const hasPackingStructure = trip.packing && trip.packing.items;
-                const packingCategories = hasPackingStructure ? Object.keys(trip.packing.items) : [];
-                
-                result.innerHTML = `
-                    <div class="test-result ${hasPackingStructure ? 'success' : 'warning'}">
-                        🎒 Packing Integration Test:<br>
-                        Structure exists: ${hasPackingStructure ? 'YES' : 'NO'}<br>
-                        Categories: ${packingCategories.length}<br>
-                        Categories: ${packingCategories.join(', ')}<br>
-                        Progress tracking: ${trip.packing?.progress ? 'YES' : 'NO'}
-                    </div>
-                `;
-            } catch (error) {
-                result.innerHTML = `<div class="test-result error">❌ Integration Error: ${error.message}</div>`;
-            }
-        };
-
-        // Update system status display
-        function updateSystemStatus() {
-            const statusDiv = document.getElementById('system-status');
-            const statusItems = Object.entries(systemStatus).map(([key, status]) => {
-                const indicator = status ? 'status-success' : 'status-error';
-                const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-                return `<div><span class="status-indicator ${indicator}"></span>${label}</div>`;
-            }).join('');
-            
-            statusDiv.innerHTML = `
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-                    ${statusItems}
-                </div>
-            `;
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            updateSystemStatus();
-        });
-    </script>
+    <!-- Core Scripts -->
+    <script type="module" src="app.js"></script>
 </body>
 </html>
