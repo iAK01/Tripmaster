@@ -89,7 +89,6 @@ export const itemsDatabase = {
                     multiplier: 2, 
                     essential: true,
                     description: 'For morning routine, aeropress etc'
-        }
             }
         },
         electronics: {
