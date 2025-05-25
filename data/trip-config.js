@@ -336,4 +336,30 @@ export const tripConfig = {
             requiredItems: ['Camera', 'Extra batteries', 'Memory cards']
         }
     }
+    watersports: {
+        name: 'Water Sports',
+        icon: '🏄‍♂️',
+        requiredItems: ['Swimwear', 'Water shoes', 'Waterproof bag', 'Snorkel gear', 'Beach towel', 'Waterproof sunscreen']
+    },
+    entertainment: {
+        name: 'Shows & Nightlife',
+        icon: '🎭',
+        requiredItems: ['Evening attire', 'Dress shoes', 'Small evening bag', 'Nice accessories']
+    },
+    shopping: {
+        name: 'Shopping',
+        icon: '🛍️',
+        requiredItems: ['Extra luggage space planning', 'Reusable shopping bags', 'Comfortable walking shoes', 'Payment cards']
+    },
+    family: {
+        name: 'Family Travel',
+        icon: '👶',
+        requiredItems: ['Baby supplies', 'Entertainment for kids', 'Snacks', 'First aid kit', 'Extra clothes']
+    },
+    relaxation: {
+        name: 'Relaxation & Reading',
+        icon: '🧘‍♀️',
+        requiredItems: ['Books/e-reader', 'Journal', 'Comfortable clothes', 'Eye mask', 'Meditation app']
+    }
+}
 };
