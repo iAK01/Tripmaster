@@ -1,4 +1,4 @@
-// utils/storage-manager.js - Enhanced for unified data storage
+// utils/storage-manager.js - Enhanced for unified data storage with itinerary support
 import { createNewTrip, DataMigration } from '../data/unified-data-model.js';
 
 export class StorageManager {
@@ -7,20 +7,35 @@ export class StorageManager {
         this.SAVED_TRIPS_KEY = 'tripmaster-saved-trips';
         this.APP_SETTINGS_KEY = 'tripmaster-settings';
         this.CACHE_KEY = 'tripmaster-cache';
+        // NEW: Separate itinerary progress tracking
+        this.ITINERARY_PROGRESS_KEY = 'tripmaster-itinerary-progress';
     }
 
     // ===== CURRENT TRIP OPERATIONS =====
     
     saveTrip(tripData) {
         try {
-            // Ensure data has proper structure
+            // NEW: Ensure itinerary structure exists
             const dataToSave = {
                 ...tripData,
+                // Ensure itinerary structure is present
+                itinerary: {
+                    days: [],
+                    progress: {
+                        completedStops: [],
+                        personalNotes: {},
+                        openDays: [],
+                        lastVisited: null
+                    },
+                    ...tripData.itinerary
+                },
                 meta: {
                     ...tripData.meta,
-                    version: '1.0',
+                    version: '2.0', // NEW: Updated version for Phase 2
                     lastModified: new Date().toISOString(),
-                    dataSize: JSON.stringify(tripData).length
+                    dataSize: JSON.stringify(tripData).length,
+                    hasItinerary: !!(tripData.itinerary && tripData.itinerary.days && tripData.itinerary.days.length > 0),
+                    hasPacking: !!(tripData.items && Object.keys(tripData.items).length > 0)
                 }
             };
             
@@ -46,10 +61,17 @@ export class StorageManager {
             
             const tripData = JSON.parse(saved);
             
-            // Check if migration is needed
+            // NEW: Check if migration is needed (Phase 1 to Phase 2)
+            if (this.needsPhase2Migration(tripData)) {
+                const migratedTrip = this.migrateToPhase2(tripData);
+                this.saveTrip(migratedTrip); // Save migrated version
+                return migratedTrip;
+            }
+            
+            // Existing migration check
             if (DataMigration.needsMigration(tripData)) {
                 const migratedTrip = DataMigration.migrateFromV1(tripData);
-                this.saveTrip(migratedTrip); // Save migrated version
+                this.saveTrip(migratedTrip);
                 return migratedTrip;
             }
             
@@ -61,9 +83,49 @@ export class StorageManager {
         }
     }
 
+    // NEW: Check if Phase 2 migration is needed
+    needsPhase2Migration(tripData) {
+        return !tripData.meta || 
+               !tripData.meta.version || 
+               parseFloat(tripData.meta.version) < 2.0 ||
+               !tripData.itinerary;
+    }
+
+    // NEW: Migrate Phase 1 data to Phase 2 structure
+    migrateToPhase2(oldTripData) {
+        const migratedTrip = {
+            ...oldTripData,
+            // Ensure itinerary structure exists
+            itinerary: {
+                days: [],
+                progress: {
+                    completedStops: [],
+                    personalNotes: {},
+                    openDays: [],
+                    lastVisited: null
+                },
+                ...oldTripData.itinerary
+            },
+            // Ensure other unified model structures exist
+            travelIntelligence: oldTripData.travelIntelligence || {},
+            quickReference: oldTripData.quickReference || {},
+            meta: {
+                ...oldTripData.meta,
+                version: '2.0',
+                migrationDate: new Date().toISOString(),
+                migratedFrom: oldTripData.meta?.version || '1.0'
+            }
+        };
+        
+        console.log('Migrated trip data to Phase 2 structure');
+        return migratedTrip;
+    }
+
     clearCurrentTrip() {
         try {
             localStorage.removeItem(this.CURRENT_TRIP_KEY);
+            // NEW: Also clear itinerary progress
+            localStorage.removeItem(this.ITINERARY_PROGRESS_KEY);
             return true;
         } catch (error) {
             console.error('Failed to clear trip:', error);
@@ -71,7 +133,112 @@ export class StorageManager {
         }
     }
 
-    // ===== SAVED TRIPS LIBRARY OPERATIONS =====
+    // ===== NEW: ITINERARY-SPECIFIC OPERATIONS =====
+    
+    saveItineraryProgress(progressData) {
+        try {
+            const dataToSave = {
+                ...progressData,
+                lastUpdated: new Date().toISOString()
+            };
+            localStorage.setItem(this.ITINERARY_PROGRESS_KEY, JSON.stringify(dataToSave));
+            return true;
+        } catch (error) {
+            console.error('Failed to save itinerary progress:', error);
+            return false;
+        }
+    }
+
+    getItineraryProgress() {
+        try {
+            const saved = localStorage.getItem(this.ITINERARY_PROGRESS_KEY);
+            if (saved) {
+                return JSON.parse(saved);
+            }
+            return {
+                completedStops: [],
+                personalNotes: {},
+                openDays: [],
+                lastVisited: null
+            };
+        } catch (error) {
+            console.error('Failed to load itinerary progress:', error);
+            return {
+                completedStops: [],
+                personalNotes: {},
+                openDays: [],
+                lastVisited: null
+            };
+        }
+    }
+
+    // NEW: Import itinerary data from JSON file
+    importItineraryData(itineraryJson) {
+        try {
+            const itineraryData = typeof itineraryJson === 'string' ? 
+                JSON.parse(itineraryJson) : itineraryJson;
+            
+            // Validate itinerary structure
+            if (!itineraryData.days || !Array.isArray(itineraryData.days)) {
+                throw new Error('Invalid itinerary format - missing days array');
+            }
+            
+            // Validate each day has required structure
+            for (const day of itineraryData.days) {
+                if (!day.date || !day.stops || !Array.isArray(day.stops)) {
+                    throw new Error(`Invalid day structure for date: ${day.date || 'unknown'}`);
+                }
+            }
+            
+            // Cache imported itinerary for quick access
+            this.saveToCache('imported-itinerary', itineraryData, 24 * 60); // Cache for 24 hours
+            
+            return {
+                success: true,
+                data: itineraryData,
+                stats: {
+                    days: itineraryData.days.length,
+                    totalStops: itineraryData.days.reduce((sum, day) => sum + day.stops.length, 0),
+                    dateRange: {
+                        start: itineraryData.days[0]?.date,
+                        end: itineraryData.days[itineraryData.days.length - 1]?.date
+                    }
+                }
+            };
+        } catch (error) {
+            console.error('Failed to import itinerary:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    // NEW: Export itinerary data
+    exportItinerary(tripData) {
+        if (!tripData.itinerary || !tripData.itinerary.days) {
+            return null;
+        }
+        
+        const exportData = {
+            tripInfo: {
+                location: tripData.location,
+                startDate: tripData.startDate,
+                nights: tripData.nights,
+                tripType: tripData.tripType
+            },
+            itinerary: tripData.itinerary,
+            exportMeta: {
+                exportDate: new Date().toISOString(),
+                appVersion: 'TripMaster v2.0',
+                format: 'itinerary-json'
+            }
+        };
+        
+        return JSON.stringify(exportData, null, 2);
+    }
+
+    // ===== SAVED TRIPS LIBRARY OPERATIONS (Enhanced) =====
     
     saveTripToLibrary(tripName, tripData) {
         try {
@@ -80,14 +247,31 @@ export class StorageManager {
             // Ensure unique trip name
             const uniqueName = this.ensureUniqueTripName(tripName, savedTrips);
             
-            savedTrips[uniqueName] = {
+            // NEW: Enhanced metadata
+            const tripToSave = {
                 ...tripData,
                 meta: {
                     ...tripData.meta,
                     savedDate: new Date().toISOString(),
-                    savedName: uniqueName
+                    savedName: uniqueName,
+                    version: '2.0',
+                    hasItinerary: !!(tripData.itinerary && tripData.itinerary.days && tripData.itinerary.days.length > 0),
+                    hasPacking: !!(tripData.items && Object.keys(tripData.items).length > 0),
+                    // NEW: Trip summary for library display
+                    summary: {
+                        location: tripData.location,
+                        nights: tripData.nights,
+                        tripType: tripData.tripType,
+                        transportation: tripData.transportation,
+                        accommodation: tripData.accommodation,
+                        totalPackingItems: this.countPackingItems(tripData.items),
+                        totalItineraryStops: this.countItineraryStops(tripData.itinerary),
+                        completionPercentage: this.calculateTripCompletion(tripData)
+                    }
                 }
             };
+            
+            savedTrips[uniqueName] = tripToSave;
             
             localStorage.setItem(this.SAVED_TRIPS_KEY, JSON.stringify(savedTrips));
             return { success: true, name: uniqueName };
@@ -97,18 +281,58 @@ export class StorageManager {
         }
     }
 
+    // NEW: Helper methods for trip summaries
+    countPackingItems(items) {
+        if (!items) return 0;
+        return Object.values(items).reduce((total, categoryItems) => 
+            total + Object.keys(categoryItems).length, 0);
+    }
+
+    countItineraryStops(itinerary) {
+        if (!itinerary || !itinerary.days) return 0;
+        return itinerary.days.reduce((total, day) => total + (day.stops ? day.stops.length : 0), 0);
+    }
+
+    calculateTripCompletion(tripData) {
+        let totalItems = 0;
+        let completedItems = 0;
+        
+        // Count packing completion
+        if (tripData.items) {
+            for (const categoryItems of Object.values(tripData.items)) {
+                for (const item of Object.values(categoryItems)) {
+                    totalItems++;
+                    if (item.completed) completedItems++;
+                }
+            }
+        }
+        
+        // Count itinerary completion
+        if (tripData.itinerary && tripData.itinerary.progress && tripData.itinerary.progress.completedStops) {
+            const totalStops = this.countItineraryStops(tripData.itinerary);
+            const completedStops = tripData.itinerary.progress.completedStops.length;
+            totalItems += totalStops;
+            completedItems += completedStops;
+        }
+        
+        return totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+    }
+
     getSavedTrips() {
         try {
             const saved = localStorage.getItem(this.SAVED_TRIPS_KEY);
             if (saved) {
                 const trips = JSON.parse(saved);
                 
-                // Migrate old trips if needed
+                // NEW: Migrate old trips to Phase 2 if needed
                 const migratedTrips = {};
                 let needsResave = false;
                 
                 Object.entries(trips).forEach(([name, trip]) => {
-                    if (DataMigration.needsMigration(trip)) {
+                    if (this.needsPhase2Migration(trip)) {
+                        migratedTrips[name] = this.migrateToPhase2(trip);
+                        needsResave = true;
+                    } else if (DataMigration.needsMigration(trip)) {
                         migratedTrips[name] = DataMigration.migrateFromV1(trip);
                         needsResave = true;
                     } else {
@@ -129,6 +353,39 @@ export class StorageManager {
         }
     }
 
+    // NEW: Get trip library with enhanced summaries
+    getTripLibraryWithSummaries() {
+        const savedTrips = this.getSavedTrips();
+        const libraryData = [];
+        
+        Object.entries(savedTrips).forEach(([name, trip]) => {
+            const summary = trip.meta?.summary || {
+                location: trip.location || 'Unknown',
+                nights: trip.nights || 0,
+                tripType: trip.tripType || 'leisure',
+                transportation: trip.transportation || '',
+                accommodation: trip.accommodation || '',
+                totalPackingItems: this.countPackingItems(trip.items),
+                totalItineraryStops: this.countItineraryStops(trip.itinerary),
+                completionPercentage: this.calculateTripCompletion(trip)
+            };
+            
+            libraryData.push({
+                name: name,
+                savedDate: trip.meta?.savedDate,
+                lastModified: trip.meta?.lastModified,
+                summary: summary,
+                hasItinerary: !!(trip.itinerary && trip.itinerary.days && trip.itinerary.days.length > 0),
+                hasPacking: !!(trip.items && Object.keys(trip.items).length > 0)
+            });
+        });
+        
+        // Sort by last modified date (most recent first)
+        libraryData.sort((a, b) => new Date(b.lastModified || b.savedDate) - new Date(a.lastModified || a.savedDate));
+        
+        return libraryData;
+    }
+
     deleteSavedTrip(tripName) {
         try {
             const savedTrips = this.getSavedTrips();
@@ -141,7 +398,96 @@ export class StorageManager {
         }
     }
 
-    // ===== CACHING OPERATIONS =====
+    // ===== EXPORT/IMPORT OPERATIONS (Enhanced) =====
+    
+    exportAllData() {
+        const currentTrip = this.getCurrentTrip();
+        const data = {
+            currentTrip: currentTrip,
+            savedTrips: this.getSavedTrips(),
+            settings: this.getSettings(),
+            itineraryProgress: currentTrip ? this.getItineraryProgress() : null,
+            exportDate: new Date().toISOString(),
+            version: '2.0',
+            appVersion: 'TripMaster v2.0 (Phase 2)',
+            exportStats: {
+                totalSavedTrips: Object.keys(this.getSavedTrips()).length,
+                currentTripHasItinerary: !!(currentTrip?.itinerary?.days?.length > 0),
+                currentTripHasPacking: !!(currentTrip?.items && Object.keys(currentTrip.items).length > 0)
+            }
+        };
+        return JSON.stringify(data, null, 2);
+    }
+
+    importData(jsonData) {
+        try {
+            const data = JSON.parse(jsonData);
+            
+            // NEW: Enhanced validation for Phase 2 data
+            if (!data.version) {
+                throw new Error('Invalid export format - missing version');
+            }
+            
+            let importResults = {
+                currentTrip: false,
+                savedTrips: 0,
+                itineraryProgress: false,
+                errors: []
+            };
+            
+            // Import current trip with Phase 2 migration if needed
+            if (data.currentTrip) {
+                let tripToImport = data.currentTrip;
+                if (this.needsPhase2Migration(tripToImport)) {
+                    tripToImport = this.migrateToPhase2(tripToImport);
+                }
+                
+                if (this.saveTrip(tripToImport)) {
+                    importResults.currentTrip = true;
+                } else {
+                    importResults.errors.push('Failed to import current trip');
+                }
+            }
+            
+            // NEW: Import itinerary progress
+            if (data.itineraryProgress) {
+                if (this.saveItineraryProgress(data.itineraryProgress)) {
+                    importResults.itineraryProgress = true;
+                } else {
+                    importResults.errors.push('Failed to import itinerary progress');
+                }
+            }
+            
+            // Import saved trips with migration
+            if (data.savedTrips) {
+                Object.entries(data.savedTrips).forEach(([name, trip]) => {
+                    let tripToImport = trip;
+                    if (this.needsPhase2Migration(tripToImport)) {
+                        tripToImport = this.migrateToPhase2(tripToImport);
+                    }
+                    
+                    const result = this.saveTripToLibrary(name, tripToImport);
+                    if (result.success) {
+                        importResults.savedTrips++;
+                    } else {
+                        importResults.errors.push(`Failed to import trip: ${name}`);
+                    }
+                });
+            }
+            
+            // Import settings
+            if (data.settings) {
+                this.saveSettings(data.settings);
+            }
+            
+            return { success: true, results: importResults };
+        } catch (error) {
+            console.error('Failed to import data:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // ===== CACHING OPERATIONS (Unchanged) =====
     
     saveToCache(key, data, expiryMinutes = 60) {
         try {
@@ -200,69 +546,7 @@ export class StorageManager {
         }
     }
 
-    // ===== EXPORT/IMPORT OPERATIONS =====
-    
-    exportAllData() {
-        const data = {
-            currentTrip: this.getCurrentTrip(),
-            savedTrips: this.getSavedTrips(),
-            settings: this.getSettings(),
-            exportDate: new Date().toISOString(),
-            version: '1.0',
-            appVersion: 'TripMaster v1.0'
-        };
-        return JSON.stringify(data, null, 2);
-    }
-
-    importData(jsonData) {
-        try {
-            const data = JSON.parse(jsonData);
-            
-            // Validate data structure
-            if (!data.version || !data.exportDate) {
-                throw new Error('Invalid export format - missing version or date');
-            }
-            
-            let importResults = {
-                currentTrip: false,
-                savedTrips: 0,
-                errors: []
-            };
-            
-            // Import current trip
-            if (data.currentTrip) {
-                if (this.saveTrip(data.currentTrip)) {
-                    importResults.currentTrip = true;
-                } else {
-                    importResults.errors.push('Failed to import current trip');
-                }
-            }
-            
-            // Import saved trips
-            if (data.savedTrips) {
-                Object.entries(data.savedTrips).forEach(([name, trip]) => {
-                    const result = this.saveTripToLibrary(name, trip);
-                    if (result.success) {
-                        importResults.savedTrips++;
-                    } else {
-                        importResults.errors.push(`Failed to import trip: ${name}`);
-                    }
-                });
-            }
-            
-            // Import settings
-            if (data.settings) {
-                this.saveSettings(data.settings);
-            }
-            
-            return { success: true, results: importResults };
-        } catch (error) {
-            console.error('Failed to import data:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    // ===== SETTINGS OPERATIONS =====
+    // ===== SETTINGS OPERATIONS (Enhanced) =====
     
     getSettings() {
         try {
@@ -296,7 +580,8 @@ export class StorageManager {
                 enabled: true,
                 weatherAlerts: true,
                 packingReminders: true,
-                scheduleReminders: true
+                scheduleReminders: true,
+                itineraryReminders: true // NEW
             },
             privacy: {
                 analytics: false,
@@ -304,13 +589,22 @@ export class StorageManager {
             },
             export: {
                 format: 'json',
-                includePhotos: false
+                includePhotos: false,
+                includeItinerary: true, // NEW
+                includePacking: true    // NEW
+            },
+            // NEW: Itinerary-specific settings
+            itinerary: {
+                autoSync: true,
+                showMaps: true,
+                expandDaysByDefault: false,
+                autoMarkCompleted: false
             },
             created: new Date().toISOString()
         };
     }
 
-    // ===== STORAGE INFO & MAINTENANCE =====
+    // ===== STORAGE INFO & MAINTENANCE (Enhanced) =====
     
     getStorageInfo() {
         let totalSize = 0;
@@ -320,7 +614,8 @@ export class StorageManager {
             this.CURRENT_TRIP_KEY,
             this.SAVED_TRIPS_KEY,
             this.APP_SETTINGS_KEY,
-            this.CACHE_KEY
+            this.CACHE_KEY,
+            this.ITINERARY_PROGRESS_KEY // NEW
         ];
         
         keys.forEach(key => {
@@ -334,6 +629,7 @@ export class StorageManager {
         });
         
         const savedTrips = this.getSavedTrips();
+        const currentTrip = this.getCurrentTrip();
         
         return {
             totalSizeBytes: totalSize,
@@ -341,7 +637,17 @@ export class StorageManager {
             totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
             breakdown: breakdown,
             tripCount: Object.keys(savedTrips).length,
-            storageQuotaUsed: ((totalSize / (5 * 1024 * 1024)) * 100).toFixed(2) + '%'
+            storageQuotaUsed: ((totalSize / (5 * 1024 * 1024)) * 100).toFixed(2) + '%',
+            // NEW: Enhanced statistics
+            stats: {
+                hasCurrentTrip: !!currentTrip,
+                currentTripHasItinerary: !!(currentTrip?.itinerary?.days?.length > 0),
+                currentTripHasPacking: !!(currentTrip?.items && Object.keys(currentTrip.items).length > 0),
+                tripsWithItinerary: Object.values(savedTrips).filter(trip => 
+                    trip.itinerary && trip.itinerary.days && trip.itinerary.days.length > 0).length,
+                tripsWithPacking: Object.values(savedTrips).filter(trip => 
+                    trip.items && Object.keys(trip.items).length > 0).length
+            }
         };
     }
 
@@ -399,7 +705,7 @@ export class StorageManager {
         }
     }
 
-    // ===== BACKUP & RECOVERY =====
+    // ===== BACKUP & RECOVERY (Enhanced) =====
     
     saveBackup(tripData) {
         try {
@@ -419,7 +725,14 @@ export class StorageManager {
             const backup = localStorage.getItem(backupKey);
             if (backup) {
                 console.warn('Loading from backup due to corrupted main data');
-                return JSON.parse(backup);
+                const backupData = JSON.parse(backup);
+                
+                // Migrate backup if needed
+                if (this.needsPhase2Migration(backupData)) {
+                    return this.migrateToPhase2(backupData);
+                }
+                
+                return backupData;
             }
             return null;
         } catch (error) {
@@ -463,12 +776,14 @@ export class StorageManager {
             isWorking: this.testStorage(),
             quotaExceeded: false,
             corruptedData: false,
-            backupAvailable: false
+            backupAvailable: false,
+            itineraryProgressAvailable: false // NEW
         };
 
         try {
             const backupKey = this.CURRENT_TRIP_KEY + '_backup';
             health.backupAvailable = localStorage.getItem(backupKey) !== null;
+            health.itineraryProgressAvailable = localStorage.getItem(this.ITINERARY_PROGRESS_KEY) !== null;
 
             const currentTrip = localStorage.getItem(this.CURRENT_TRIP_KEY);
             if (currentTrip) {
@@ -496,7 +811,8 @@ export class StorageManager {
                 this.CURRENT_TRIP_KEY,
                 this.SAVED_TRIPS_KEY,
                 this.APP_SETTINGS_KEY,
-                this.CACHE_KEY
+                this.CACHE_KEY,
+                this.ITINERARY_PROGRESS_KEY // NEW
             ].forEach(key => {
                 try {
                     localStorage.removeItem(key);
