@@ -238,14 +238,19 @@ export class TripSetup {
                         <div class="form-row">
                             <div class="form-group" style="grid-column: 1 / -1;">
                                 <label>🎯 Activities (check all that apply):</label>
-                                <div class="activities-grid">
-                                    <label><input type="checkbox" id="activity-business" value="business"> 💼 Business meetings</label>
-                                    <label><input type="checkbox" id="activity-sightseeing" value="sightseeing"> 🏛️ Sightseeing</label>
-                                    <label><input type="checkbox" id="activity-hiking" value="hiking"> 🥾 Hiking</label>
-                                    <label><input type="checkbox" id="activity-beach" value="beach"> 🏖️ Beach</label>
-                                    <label><input type="checkbox" id="activity-workout" value="workout"> 💪 Gym & fitness</label>
-                                    <label><input type="checkbox" id="activity-photography" value="photography"> 📸 Photography</label>
-                                </div>
+<div class="activities-grid">
+    <label><input type="checkbox" id="activity-business" value="business"> 💼 Business meetings</label>
+    <label><input type="checkbox" id="activity-sightseeing" value="sightseeing"> 🏛️ Sightseeing</label>
+    <label><input type="checkbox" id="activity-hiking" value="hiking"> 🥾 Hiking</label>
+    <label><input type="checkbox" id="activity-beach" value="beach"> 🏖️ Beach</label>
+    <label><input type="checkbox" id="activity-workout" value="workout"> 💪 Gym & fitness</label>
+    <label><input type="checkbox" id="activity-photography" value="photography"> 📸 Photography</label>
+    <label><input type="checkbox" id="activity-watersports" value="watersports"> 🏄‍♂️ Water sports</label>
+    <label><input type="checkbox" id="activity-entertainment" value="entertainment"> 🎭 Shows & nightlife</label>
+    <label><input type="checkbox" id="activity-shopping" value="shopping"> 🛍️ Shopping</label>
+    <label><input type="checkbox" id="activity-family" value="family"> 👶 Family travel</label>
+    <label><input type="checkbox" id="activity-relaxation" value="relaxation"> 🧘‍♀️ Relaxation & reading</label>
+</div>
                             </div>
                         </div>
                         
