@@ -692,7 +692,6 @@ export const itemsDatabase = {
         'Quick-dry towel': { multiplier: 0, essential: true },
         'Waterproof sunscreen': { multiplier: 0, essential: true }
     },
-    
     entertainment: {
         'Evening attire': { multiplier: 0.3, essential: true },
         'Dress shoes': { multiplier: 0, essential: true },
@@ -701,7 +700,6 @@ export const itemsDatabase = {
         'Cash for shows/drinks': { multiplier: 0, essential: true },
         'Comfortable walking shoes': { multiplier: 0, essential: true }
     },
-    
     shopping: {
         'Extra suitcase/duffle bag': { multiplier: 0, essential: true },
         'Reusable shopping bags': { multiplier: 0.2, essential: true },
@@ -710,7 +708,6 @@ export const itemsDatabase = {
         'Currency for markets': { multiplier: 0, essential: false },
         'Luggage scale': { multiplier: 0, essential: false }
     },
-    
     family: {
         'Kid entertainment': { multiplier: 0.5, essential: true },
         'Snacks for kids': { multiplier: 1, essential: true },
@@ -719,7 +716,6 @@ export const itemsDatabase = {
         'Wipes': { multiplier: 1, essential: true },
         'Portable games/toys': { multiplier: 0.3, essential: false }
     },
-    
     relaxation: {
         'Books': { multiplier: 0.2, essential: true },
         'E-reader': { multiplier: 0, essential: false },
@@ -728,9 +724,9 @@ export const itemsDatabase = {
         'Eye mask': { multiplier: 0, essential: false },
         'Meditation app': { multiplier: 0, essential: false },
         'Herbal tea': { multiplier: 0, essential: false }
-    }
-}
-    },
+         }
+     }
+  },
     
     special_items: {
         baby_travel: {
