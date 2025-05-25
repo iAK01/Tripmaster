@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,12 +11,15 @@
     <meta name="theme-color" content="#4facfe">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <!-- NEW: Leaflet.js for maps in itinerary -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
     <div class="app-container">
         <!-- Navigation Component -->
         <section id="navigation-section"></section>
-
         <!-- Main Content Area -->
         <main class="main-content">
             <!-- Overview Dashboard -->
@@ -26,25 +28,47 @@
                     <!-- Overview component will render here -->
                 </div>
             </section>
-
             <!-- Trip Setup (Your existing enhanced setup) -->
             <section id="setup-section" class="tab-content">
                 <div class="container">
                     <div id="trip-setup-section"></div>
                 </div>
             </section>
-
-            <!-- Itinerary Management -->
+            <!-- Itinerary Management - UPDATED -->
             <section id="itinerary-section" class="tab-content">
                 <div class="container">
-                    <div class="content-placeholder">
+                    <div class="itinerary-header">
                         <h2>📅 Trip Itinerary</h2>
-                        <p>Day-by-day schedule and activities</p>
-                        <div class="coming-soon">Coming in Phase 2</div>
+                        <div class="itinerary-actions">
+                            <button class="btn btn-primary" onclick="document.getElementById('itinerary-file-import').click()">
+                                📥 Import Itinerary
+                            </button>
+                            <button class="btn btn-secondary" onclick="loadSampleItinerary()">
+                                🧪 Load Athens Sample
+                            </button>
+                            <input type="file" id="itinerary-file-import" accept=".json" style="display: none;" 
+                                   onchange="handleItineraryFileImport(this)">
+                        </div>
+                    </div>
+                    <!-- NEW: Itinerary Display Container -->
+                    <div id="itinerary-display-section">
+                        <div class="itinerary-placeholder">
+                            <div class="placeholder-content">
+                                <h3>📋 No Itinerary Yet</h3>
+                                <p>Import your itinerary JSON file to see your day-by-day schedule.</p>
+                                <div class="placeholder-actions">
+                                    <button class="btn btn-primary" onclick="document.getElementById('itinerary-file-import').click()">
+                                        📥 Import Itinerary JSON
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="loadSampleItinerary()">
+                                        🧪 Try Athens Sample
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
-
             <!-- Packing Lists (Your existing enhanced components) -->
             <section id="packing-section" class="tab-content">
                 <div class="container">
@@ -54,7 +78,6 @@
                     <div id="checklist-display-section"></div>
                 </div>
             </section>
-
             <!-- Local Information -->
             <section id="local-info-section" class="tab-content">
                 <div class="container">
@@ -67,13 +90,10 @@
             </section>
         </main>
     </div>
-
     <!-- Your existing Control Panel -->
     <div id="control-panel"></div>
-
     <!-- Your existing Notification Container -->
     <div id="notification-container"></div>
-
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay hidden">
         <div class="loading-spinner">
@@ -81,6 +101,97 @@
             <p>Loading your trip data...</p>
         </div>
     </div>
+
+    <!-- NEW: Import functionality scripts -->
+    <script>
+        // Global file import handler for itinerary
+        function handleItineraryFileImport(fileInput) {
+            const file = fileInput.files[0];
+            if (!file) return;
+            
+            if (!file.name.endsWith('.json')) {
+                alert('Please select a JSON file');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const itineraryData = JSON.parse(e.target.result);
+                    
+                    // Call the app's import handler
+                    if (window.tripMaster && window.tripMaster.handleImportItinerary) {
+                        window.tripMaster.handleImportItinerary(itineraryData);
+                    } else {
+                        console.error('TripMaster not initialized yet');
+                        alert('App not ready yet - please wait a moment and try again');
+                    }
+                } catch (error) {
+                    console.error('Failed to parse JSON:', error);
+                    alert('Invalid JSON file format');
+                }
+            };
+            reader.readAsText(file);
+            
+            // Clear the input
+            fileInput.value = '';
+        }
+
+        // Sample itinerary loader (for your Athens JSON)
+        async function loadSampleItinerary() {
+            try {
+                const response = await fetch('./itinerary-data.json');
+                if (!response.ok) {
+                    throw new Error('Could not load sample itinerary');
+                }
+                const itineraryData = await response.json();
+                
+                if (window.tripMaster && window.tripMaster.handleImportItinerary) {
+                    window.tripMaster.handleImportItinerary(itineraryData);
+                } else {
+                    console.error('TripMaster not initialized yet');
+                    alert('App not ready yet - please wait a moment and try again');
+                }
+            } catch (error) {
+                console.error('Failed to load sample itinerary:', error);
+                alert('Could not load Athens sample. Make sure itinerary-data.json is in the root folder.');
+            }
+        }
+
+        // Drag and drop support for itinerary files
+        document.addEventListener('DOMContentLoaded', function() {
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                document.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            // Handle dropped files
+            document.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.name.endsWith('.json')) {
+                        // Create a fake file input event
+                        const fakeInput = {
+                            files: [file]
+                        };
+                        handleItineraryFileImport(fakeInput);
+                    } else {
+                        alert('Please drop a JSON file');
+                    }
+                }
+            }
+        });
+    </script>
 
     <!-- Core Scripts -->
     <script type="module" src="app.js"></script>
