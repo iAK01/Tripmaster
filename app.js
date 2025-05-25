@@ -1,7 +1,8 @@
-// app.js - TripMaster application (evolved from your SmartTripPlanner)
+// app.js - TripMaster application with Phase 2 Itinerary Integration
 import { Navigation } from './components/navigation.js';
 import { TripSetup } from './components/trip-setup.js';
 import { ChecklistDisplay } from './components/checklist-display.js';
+import { ItineraryDisplay } from './components/itinerary-display.js'; // NEW
 import { ProgressTracking } from './components/progress-tracking.js';
 import { WeatherDisplay } from './components/weather-display.js';
 import { ControlPanel } from './components/control-panel.js';
@@ -38,7 +39,7 @@ class TripMaster {
                 
                 // NEW: Unified model integration
                 tripInfo: null,    // Will hold unified trip info
-                itinerary: { days: [], progress: {} },
+                itinerary: { days: [], progress: {} }, // NEW: Itinerary data
                 travelIntelligence: {},
                 quickReference: {}
             },
@@ -92,6 +93,14 @@ class TripMaster {
             onNoteUpdate: (category, item, note) => this.handleNoteUpdate(category, item, note)
         });
 
+        // NEW: Itinerary Display Component
+        this.itineraryDisplay = new ItineraryDisplay({
+            container: document.getElementById('itinerary-display-section'),
+            onStopToggle: (stopId, completed) => this.handleStopToggle(stopId, completed),
+            onNoteUpdate: (stopId, note) => this.handleItineraryNoteUpdate(stopId, note),
+            onActivitySync: (stopId, activities) => this.handleActivitySync(stopId, activities)
+        });
+
         this.controlPanel = new ControlPanel({
             container: document.getElementById('control-panel'),
             onExport: () => this.handleExport(),
@@ -101,6 +110,9 @@ class TripMaster {
 
         // Initialize tab content visibility
         this.showTab('overview');
+        
+        // Make itinerary display available globally (for component callbacks)
+        window.itineraryDisplay = this.itineraryDisplay;
     }
 
     // NEW: Tab management system
@@ -119,7 +131,8 @@ class TripMaster {
                 break;
                 
             case 'itinerary':
-                // Future: Update itinerary components
+                // NEW: Update itinerary components
+                this.updateItineraryComponents();
                 break;
                 
             case 'local-info':
@@ -144,6 +157,159 @@ class TripMaster {
         const targetTab = document.getElementById(`${tabId}-section`);
         if (targetTab) {
             targetTab.classList.add('active');
+        }
+    }
+
+    // NEW: Itinerary-specific methods
+    updateItineraryComponents() {
+        if (this.state.trip.itinerary && this.state.trip.itinerary.days.length > 0) {
+            this.itineraryDisplay.render(this.state.trip.itinerary, this.state.trip.tripInfo);
+        }
+    }
+
+    // NEW: Handle itinerary stop completion
+    handleStopToggle(stopId, completed) {
+        // Update progress tracking
+        if (completed) {
+            if (!this.state.trip.itinerary.progress.completedStops) {
+                this.state.trip.itinerary.progress.completedStops = [];
+            }
+            if (!this.state.trip.itinerary.progress.completedStops.includes(stopId)) {
+                this.state.trip.itinerary.progress.completedStops.push(stopId);
+            }
+        } else {
+            if (this.state.trip.itinerary.progress.completedStops) {
+                this.state.trip.itinerary.progress.completedStops = 
+                    this.state.trip.itinerary.progress.completedStops.filter(id => id !== stopId);
+            }
+        }
+        
+        this.storage.saveTrip(this.state.trip);
+        this.updateNavigationProgress();
+        
+        const message = completed ? 'Stop completed!' : 'Stop marked incomplete';
+        this.notification.show(message, 'success');
+    }
+
+    // NEW: Handle itinerary note updates
+    handleItineraryNoteUpdate(stopId, note) {
+        if (!this.state.trip.itinerary.progress.personalNotes) {
+            this.state.trip.itinerary.progress.personalNotes = {};
+        }
+        
+        this.state.trip.itinerary.progress.personalNotes[stopId] = {
+            text: note,
+            timestamp: new Date().toISOString()
+        };
+        
+        this.storage.saveTrip(this.state.trip);
+        this.notification.show('Note saved!', 'success');
+    }
+
+    // NEW: Activity sync from itinerary to packing list
+    handleActivitySync(stopId, activities) {
+        let addedItems = 0;
+        
+        // Analyze activities and add relevant packing items
+        activities.forEach(activity => {
+            const activityLower = activity.toLowerCase();
+            
+            // Business activities
+            if (activityLower.includes('session') || activityLower.includes('meeting') || 
+                activityLower.includes('presentation') || activityLower.includes('showcase')) {
+                this.addPackingItemsFromActivity(['business_items.business_cards', 'business_items.notebook', 'clothes.dress_shirt']);
+                addedItems += 3;
+            }
+            
+            // Dining activities
+            if (activityLower.includes('dinner') || activityLower.includes('restaurant') || 
+                activityLower.includes('dining')) {
+                this.addPackingItemsFromActivity(['clothes.nice_shoes', 'clothes.dress_pants']);
+                addedItems += 2;
+            }
+            
+            // Walking/touring activities
+            if (activityLower.includes('walking') || activityLower.includes('tour') || 
+                activityLower.includes('exploration') || activityLower.includes('stroll')) {
+                this.addPackingItemsFromActivity(['clothes.comfortable_shoes', 'travel_essentials.water_bottle']);
+                addedItems += 2;
+            }
+            
+            // Cultural activities
+            if (activityLower.includes('museum') || activityLower.includes('cultural') || 
+                activityLower.includes('historic')) {
+                this.addPackingItemsFromActivity(['electronics.camera', 'travel_essentials.guidebook']);
+                addedItems += 2;
+            }
+        });
+        
+        if (addedItems > 0) {
+            this.updatePackingComponents();
+            this.storage.saveTrip(this.state.trip);
+            this.notification.show(`🧳 Added ${addedItems} items to packing list based on activities!`, 'success');
+        } else {
+            this.notification.show('No new packing items needed for these activities', 'info');
+        }
+    }
+
+    // NEW: Helper method to add packing items from activities
+    addPackingItemsFromActivity(itemPaths) {
+        itemPaths.forEach(itemPath => {
+            const [category, itemName] = itemPath.split('.');
+            
+            // Initialize category if it doesn't exist
+            if (!this.state.trip.items[category]) {
+                this.state.trip.items[category] = {};
+            }
+            
+            // Add item if it doesn't already exist
+            if (!this.state.trip.items[category][itemName]) {
+                this.state.trip.items[category][itemName] = {
+                    quantity: 1,
+                    essential: false,
+                    completed: false,
+                    notes: 'Added from itinerary activity',
+                    custom: false,
+                    fromActivity: true
+                };
+            }
+        });
+    }
+
+    // NEW: Import itinerary data
+    async handleImportItinerary(itineraryData) {
+        try {
+            // Validate itinerary data structure
+            if (!itineraryData.days || !Array.isArray(itineraryData.days)) {
+                throw new Error('Invalid itinerary format - missing days array');
+            }
+            
+            // Store itinerary data
+            this.state.trip.itinerary = {
+                days: itineraryData.days,
+                progress: this.state.trip.itinerary.progress || {
+                    completedStops: [],
+                    personalNotes: {}
+                }
+            };
+            
+            // Update components
+            this.updateItineraryComponents();
+            this.updateNavigationProgress();
+            
+            // Save to storage
+            this.storage.saveTrip(this.state.trip);
+            
+            // Show success message
+            const totalStops = itineraryData.days.reduce((sum, day) => sum + day.stops.length, 0);
+            this.notification.show(`📅 Imported itinerary with ${itineraryData.days.length} days and ${totalStops} stops!`, 'success');
+            
+            // Switch to itinerary tab
+            this.navigation.switchTab('itinerary');
+            
+        } catch (error) {
+            console.error('Failed to import itinerary:', error);
+            this.notification.show('Failed to import itinerary. Please check the file format.', 'error');
         }
     }
 
@@ -456,7 +622,7 @@ class TripMaster {
                 items: {},
                 completedItems: [],
                 tripInfo: null,
-                itinerary: { days: [], progress: {} },
+                itinerary: { days: [], progress: {} }, // Reset itinerary too
                 travelIntelligence: {},
                 quickReference: {}
             };
@@ -511,6 +677,7 @@ class TripMaster {
 
     updateAllComponents() {
         this.updatePackingComponents();
+        this.updateItineraryComponents(); // NEW
         this.updateOverviewComponents();
     }
 
@@ -518,7 +685,7 @@ class TripMaster {
         const progress = {
             setup: this.calculateSetupProgress(),
             packing: this.calculateProgress().percentage,
-            itinerary: 0, // Future
+            itinerary: this.calculateItineraryProgress(), // NEW
             documents: 0  // Future
         };
         
@@ -528,6 +695,33 @@ class TripMaster {
         if (packingItems > 0) {
             this.navigation.updateTabBadge('packing', packingItems);
         }
+        
+        // NEW: Update itinerary badge
+        const itineraryStops = this.getTotalItineraryStops();
+        if (itineraryStops > 0) {
+            this.navigation.updateTabBadge('itinerary', itineraryStops);
+        }
+    }
+
+    // NEW: Calculate itinerary progress
+    calculateItineraryProgress() {
+        if (!this.state.trip.itinerary || !this.state.trip.itinerary.days || this.state.trip.itinerary.days.length === 0) {
+            return 0;
+        }
+        
+        const totalStops = this.state.trip.itinerary.days.reduce((sum, day) => sum + day.stops.length, 0);
+        const completedStops = this.state.trip.itinerary.progress.completedStops ? 
+            this.state.trip.itinerary.progress.completedStops.length : 0;
+        
+        return totalStops > 0 ? Math.round((completedStops / totalStops) * 100) : 0;
+    }
+
+    // NEW: Get total itinerary stops
+    getTotalItineraryStops() {
+        if (!this.state.trip.itinerary || !this.state.trip.itinerary.days) {
+            return 0;
+        }
+        return this.state.trip.itinerary.days.reduce((sum, day) => sum + day.stops.length, 0);
     }
 
     calculateSetupProgress() {
@@ -598,13 +792,21 @@ class TripMaster {
                             this.handleResetTrip();
                         }
                         break;
+                    case 'i':
+                        if (e.shiftKey) {
+                            e.preventDefault();
+                            // NEW: Quick import itinerary shortcut
+                            document.getElementById('itinerary-import')?.click();
+                        }
+                        break;
                 }
             }
         });
 
         // Your existing auto-save
         setInterval(() => {
-            if (Object.keys(this.state.trip.items).length > 0) {
+            if (Object.keys(this.state.trip.items).length > 0 || 
+                (this.state.trip.itinerary && this.state.trip.itinerary.days.length > 0)) {
                 this.storage.saveTrip(this.state.trip);
             }
         }, 30000);
@@ -613,6 +815,36 @@ class TripMaster {
         window.addEventListener('beforeunload', () => {
             this.storage.saveTrip(this.state.trip);
         });
+
+        // NEW: File drop handler for itinerary import
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const files = e.dataFiles || e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.name.endsWith('.json')) {
+                    this.handleItineraryFileImport(file);
+                }
+            }
+        });
+    }
+
+    // NEW: Handle itinerary file import
+    handleItineraryFileImport(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const itineraryData = JSON.parse(e.target.result);
+                this.handleImportItinerary(itineraryData);
+            } catch (error) {
+                this.notification.show('Invalid JSON file format', 'error');
+            }
+        };
+        reader.readAsText(file);
     }
 
     async loadSavedState() {
@@ -626,12 +858,15 @@ class TripMaster {
                 transportation: savedTrip.transportation || '',
                 accommodation: savedTrip.accommodation || '',
                 transportationOptions: savedTrip.transportationOptions || [],
-                accommodationOptions: savedTrip.accommodationOptions || []
+                accommodationOptions: savedTrip.accommodationOptions || [],
+                // NEW: Ensure itinerary structure exists
+                itinerary: savedTrip.itinerary || { days: [], progress: {} }
             };
             
             this.tripSetup.loadTripData(this.state.trip);
             
-            if (Object.keys(savedTrip.items).length > 0) {
+            if (Object.keys(savedTrip.items).length > 0 || 
+                (savedTrip.itinerary && savedTrip.itinerary.days && savedTrip.itinerary.days.length > 0)) {
                 this.updateAllComponents();
                 
                 const context = [];
