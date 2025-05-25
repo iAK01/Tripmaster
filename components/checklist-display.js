@@ -32,7 +32,7 @@ export class ChecklistDisplay {
             international_flight_items: '🌍 International Flight',
             multi_transport_coordination: '🚀 Multi-Transport Coordination',
             water_sports_gear: '🏄‍♂️ Water Sports',
-            shopping_gear: '🛍️ Shopping'
+            shopping_gear: '🛍️ Shopping',
             // NEW: Transportation categories
             flight_essentials: '✈️ Flight Essentials',
             carry_on_items: '🧳 Carry-On Items',
@@ -86,7 +86,7 @@ export class ChecklistDisplay {
             international_flight_items: '🌍',
             multi_transport_coordination: '🚀',
             water_sports_gear: '🏄‍♂️',
-            shopping_gear: '🛍️'
+            shopping_gear: '🛍️',
             // NEW: Transportation icons
             flight_essentials: '✈️',
             carry_on_items: '🧳',
