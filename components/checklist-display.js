@@ -25,6 +25,14 @@ export class ChecklistDisplay {
             travel_essentials: '✈️ Travel Essentials',
             formal_wear: '👔 Formal Wear',
             baby_items: '👶 Baby Items',
+            entertainment_gear: '🎭 Entertainment',
+            family_travel_gear: '👨‍👩‍👧‍👦 Family Travel',
+            relaxation_gear: '🧘‍♀️ Relaxation',
+            carry_on_compliance: '🧳 Carry-On Compliance',
+            international_flight_items: '🌍 International Flight',
+            multi_transport_coordination: '🚀 Multi-Transport Coordination',
+            water_sports_gear: '🏄‍♂️ Water Sports',
+            shopping_gear: '🛍️ Shopping'
             // NEW: Transportation categories
             flight_essentials: '✈️ Flight Essentials',
             carry_on_items: '🧳 Carry-On Items',
@@ -71,6 +79,14 @@ export class ChecklistDisplay {
             travel_essentials: '✈️',
             formal_wear: '👔',
             baby_items: '👶',
+            entertainment_gear: '🎭',
+            family_travel_gear: '👨‍👩‍👧‍👦',
+            relaxation_gear: '🧘‍♀️',
+            carry_on_compliance: '🧳',
+            international_flight_items: '🌍',
+            multi_transport_coordination: '🚀',
+            water_sports_gear: '🏄‍♂️',
+            shopping_gear: '🛍️'
             // NEW: Transportation icons
             flight_essentials: '✈️',
             carry_on_items: '🧳',
