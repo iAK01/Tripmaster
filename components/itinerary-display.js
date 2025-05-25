@@ -218,7 +218,7 @@ export class ItineraryDisplay {
         `;
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 3000);
-    }
+
 }
 // ===== STOP CREATION =====
     createStopElement(stop, index, totalStops, dayDate) {
