@@ -1086,6 +1086,8 @@ export class ListGenerator {
         if (tripData.activities) {
             for (const activity of tripData.activities) {
                 const config = this.rules.activities[activity];
+                        console.log(`Activity: ${activity}, Config found:`, config); // ← ADD THIS DEBUG LINE
+
                 if (config) {
                     const categoryName = config.category || `${activity}_gear`;
                     this.addItemsToCategory(
