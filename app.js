@@ -172,30 +172,49 @@ class TripMaster {
     }
 
     showTab(tabId) {
-        // Hide all tab content
+        console.log(`🔄 Showing tab: ${tabId}`);
+        
+        // Hide all tab content sections
         document.querySelectorAll('.tab-content').forEach(tab => {
             tab.classList.remove('active');
             tab.style.display = 'none';
         });
         
-        // Show selected tab
-        const targetTab = document.getElementById(`${tabId}-section`);
-        if (targetTab) {
-            targetTab.classList.add('active');
-            targetTab.style.display = 'block';
-            console.log(`✅ Tab ${tabId} shown`);
+        // Show the target tab section
+        const targetSection = document.getElementById(`${tabId}-section`);
+        if (targetSection) {
+            targetSection.classList.add('active');
+            targetSection.style.display = 'block';
+            
+            // CRITICAL: Force visibility for setup tab
+            if (tabId === 'setup') {
+                targetSection.style.visibility = 'visible';
+                targetSection.style.opacity = '1';
+                
+                // Also ensure the setup container is visible
+                const setupContainer = document.getElementById('trip-setup-section');
+                if (setupContainer) {
+                    setupContainer.style.display = 'block';
+                    setupContainer.style.visibility = 'visible';
+                }
+                
+                console.log(`✅ Setup tab forced visible`);
+            }
+            
+            console.log(`✅ Tab ${tabId} shown successfully`);
         } else {
             console.error(`❌ Tab section ${tabId}-section not found`);
         }
     }
 
     showInitialTab() {
-        // Load saved tab or default to overview
-        const savedTab = localStorage.getItem('tripmaster-current-tab');
-        const initialTab = savedTab || 'overview';
+        // Always start with overview tab, then let user click Setup
+        this.navigation.switchTab('overview');
         
-        this.navigation.switchTab(initialTab);
-        console.log(`📋 Initial tab: ${initialTab}`);
+        // Force proper tab display
+        this.showTab('overview');
+        
+        console.log(`📋 App initialized - click Setup tab to begin`);
     }
 
     // ===== PROFILE INTEGRATION =====
