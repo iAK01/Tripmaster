@@ -1,3 +1,4 @@
+import { isProfileComplete } from '../data/unified-data-model.js';
 
 // components/navigation.js - Tab navigation system for TripMaster
 export class Navigation {
@@ -5,6 +6,9 @@ export class Navigation {
         this.container = options.container;
         this.onTabChange = options.onTabChange;
         this.currentTab = 'overview';
+
+        this.userProfile = null;
+        this.storageManager = null; // Will be injected
         
         this.tabs = [
             { id: 'overview', label: '📋 Overview', icon: '📋' },
@@ -21,9 +25,9 @@ export class Navigation {
     render() {
         this.container.innerHTML = `
             <nav class="tripmaster-navigation">
-                <div class="nav-header">
+               <div class="nav-header">
                     <h1 class="app-title">🧳 TripMaster</h1>
-                    <p class="app-subtitle">Your Complete Travel Companion</p>
+                    <p class="app-subtitle">${this.getPersonalizedSubtitle()}</p>
                 </div>
                 <div class="nav-tabs">
                     ${this.tabs.map(tab => `
@@ -127,16 +131,19 @@ export class Navigation {
     }
 
     calculateOverallProgress(progressData) {
-        const weights = {
-            setup: 20,      // Trip setup completion
+         const weights = {
+            profile: 10,    // User profile setup (NEW)
+            setup: 15,      // Trip setup completion
             packing: 40,    // Packing completion
             itinerary: 30,  // Itinerary planning
-            docs: 10        // Document readiness
+            docs: 5         // Document readiness
         };
         
         let totalProgress = 0;
         
-        // Setup progress (has destination, dates, etc.)
+        const profileComplete = (this.userProfile && isProfileComplete(this.userProfile)) ? 100 : 0;
+        totalProgress += (profileComplete * weights.profile) / 100;
+        
         const setupComplete = progressData.setup || 0;
         totalProgress += (setupComplete * weights.setup) / 100;
         
@@ -153,6 +160,40 @@ export class Navigation {
         totalProgress += (docsComplete * weights.docs) / 100;
         
         return Math.round(totalProgress);
+    }
+
+        // NEW: Profile and personalization methods
+    setStorageManager(storageManager) {
+        this.storageManager = storageManager;
+        this.userProfile = storageManager ? storageManager.getUserProfile() : null;
+    }
+
+    updateUserProfile(profile) {
+        this.userProfile = profile;
+        // Re-render header to show updated personalization
+        this.updateHeader();
+    }
+
+    getPersonalizedSubtitle() {
+        if (this.userProfile && this.userProfile.name) {
+            const greeting = this.getTimeBasedGreeting();
+            return `${greeting} ${this.userProfile.name}! Your Complete Travel Companion`;
+        }
+        return 'Your Complete Travel Companion';
+    }
+
+    getTimeBasedGreeting() {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good morning,';
+        if (hour < 17) return 'Hello,';
+        return 'Good evening,';
+    }
+
+    updateHeader() {
+        const subtitle = this.container.querySelector('.app-subtitle');
+        if (subtitle) {
+            subtitle.textContent = this.getPersonalizedSubtitle();
+        }
     }
 
     showTabNotification(tabId, message, type = 'info') {
