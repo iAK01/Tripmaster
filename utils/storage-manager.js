@@ -6,6 +6,7 @@ export class StorageManager {
         this.CURRENT_TRIP_KEY = 'tripmaster-current-trip';
         this.SAVED_TRIPS_KEY = 'tripmaster-saved-trips';
         this.APP_SETTINGS_KEY = 'tripmaster-settings';
+        this.USER_PROFILE_KEY = 'tripmaster-user-profile';
         this.CACHE_KEY = 'tripmaster-cache';
         // NEW: Separate itinerary progress tracking
         this.ITINERARY_PROGRESS_KEY = 'tripmaster-itinerary-progress';
@@ -131,6 +132,62 @@ export class StorageManager {
             console.error('Failed to clear trip:', error);
             return false;
         }
+    }
+
+        // ===== USER PROFILE OPERATIONS =====
+    
+    saveUserProfile(profileData) {
+        try {
+            const dataToSave = {
+                ...profileData,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            localStorage.setItem(this.USER_PROFILE_KEY, JSON.stringify(dataToSave));
+            return true;
+        } catch (error) {
+            console.error('Failed to save user profile:', error);
+            this.handleStorageError(error);
+            return false;
+        }
+    }
+
+    getUserProfile() {
+        try {
+            const saved = localStorage.getItem(this.USER_PROFILE_KEY);
+            if (!saved) {
+                return null;
+            }
+            
+            const profileData = JSON.parse(saved);
+            
+            // Validate profile structure
+            if (!profileData.name && !profileData.homeLocation) {
+                console.warn('Invalid profile data found, clearing');
+                this.clearUserProfile();
+                return null;
+            }
+            
+            return profileData;
+        } catch (error) {
+            console.error('Failed to load user profile:', error);
+            return null;
+        }
+    }
+
+    clearUserProfile() {
+        try {
+            localStorage.removeItem(this.USER_PROFILE_KEY);
+            return true;
+        } catch (error) {
+            console.error('Failed to clear user profile:', error);
+            return false;
+        }
+    }
+
+    hasUserProfile() {
+        const profile = this.getUserProfile();
+        return profile && profile.name && profile.homeLocation?.city;
     }
 
     // ===== NEW: ITINERARY-SPECIFIC OPERATIONS =====
@@ -406,6 +463,7 @@ export class StorageManager {
             currentTrip: currentTrip,
             savedTrips: this.getSavedTrips(),
             settings: this.getSettings(),
+            userProfile: this.getUserProfile(),
             itineraryProgress: currentTrip ? this.getItineraryProgress() : null,
             exportDate: new Date().toISOString(),
             version: '2.0',
@@ -432,6 +490,7 @@ export class StorageManager {
                 currentTrip: false,
                 savedTrips: 0,
                 itineraryProgress: false,
+                userProfile: false,
                 errors: []
             };
             
@@ -455,6 +514,14 @@ export class StorageManager {
                     importResults.itineraryProgress = true;
                 } else {
                     importResults.errors.push('Failed to import itinerary progress');
+                }
+            }
+              // Import user profile
+            if (data.userProfile) {
+                if (this.saveUserProfile(data.userProfile)) {
+                    importResults.userProfile = true;
+                } else {
+                    importResults.errors.push('Failed to import user profile');
                 }
             }
             
@@ -615,7 +682,8 @@ export class StorageManager {
             this.SAVED_TRIPS_KEY,
             this.APP_SETTINGS_KEY,
             this.CACHE_KEY,
-            this.ITINERARY_PROGRESS_KEY // NEW
+            this.ITINERARY_PROGRESS_KEY,
+            this.USER_PROFILE_KEY // NEW
         ];
         
         keys.forEach(key => {
@@ -834,6 +902,56 @@ export class StorageManager {
             };
         } catch (error) {
             console.error('Emergency recovery failed:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+        // NEW: Smart reset methods that handle user profile
+    softReset() {
+        // Reset trip data but keep profile and settings
+        try {
+            this.clearCurrentTrip();
+            localStorage.removeItem(this.ITINERARY_PROGRESS_KEY);
+            return { success: true, preserved: 'profile and settings' };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    resetWithProfileChoice(keepProfile = true) {
+        try {
+            const profile = keepProfile ? this.getUserProfile() : null;
+            
+            // Clear everything
+            [
+                this.CURRENT_TRIP_KEY,
+                this.SAVED_TRIPS_KEY,
+                this.APP_SETTINGS_KEY,
+                this.CACHE_KEY,
+                this.ITINERARY_PROGRESS_KEY,
+                ...(keepProfile ? [] : [this.USER_PROFILE_KEY])
+            ].forEach(key => {
+                try {
+                    localStorage.removeItem(key);
+                } catch (e) {
+                    console.warn(`Failed to clear ${key}:`, e);
+                }
+            });
+            
+            // Restore profile if keeping it
+            if (keepProfile && profile) {
+                this.saveUserProfile(profile);
+            }
+            
+            // Restore default settings
+            this.saveSettings(this.getDefaultSettings());
+            
+            return { 
+                success: true, 
+                profileKept: keepProfile,
+                profileName: profile?.name || null
+            };
+        } catch (error) {
             return { success: false, error: error.message };
         }
     }
