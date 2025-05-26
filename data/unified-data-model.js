@@ -606,7 +606,7 @@ export const TripValidation = {
     return this.isValidTrip(trip) && 
            isProfileComplete(profile) &&
            trip.tripInfo.destination.countryCode !== profile.homeLocation.countryCode;
-  }
+  },
 
   getValidationErrors(trip) {
     const errors = [];
