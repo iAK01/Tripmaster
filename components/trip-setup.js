@@ -91,6 +91,51 @@ if (!this.userProfile || !isProfileComplete(this.userProfile)) {
         `;
     }
 
+  renderProfileSetup() {
+   const existingProfile = this.userProfile || {};
+   
+   return `
+       <div class="profile-setup" id="profileSetup" style="max-width: 600px; margin: 0 auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+           <div class="setup-header" style="text-align: center; margin-bottom: 30px;">
+               <h2 style="color: #333; margin-bottom: 10px;">👋 Welcome to TripMaster!</h2>
+               <p style="color: #666; font-size: 16px;">Let's personalize your travel experience</p>
+           </div>
+           
+           <div class="profile-form">
+               <div class="form-row" style="margin-bottom: 25px;">
+                   <div class="form-group">
+                       <label for="userName" style="display: block; margin-bottom: 8px; font-weight: bold; color: #555;">What's your first name?</label>
+                       <input type="text" id="userName" placeholder="e.g., John" value="${existingProfile.name || ''}" 
+                              style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+                       <small style="color: #888; font-size: 14px;">We'll use this to personalize your experience</small>
+                   </div>
+               </div>
+               
+               <div class="form-row" style="margin-bottom: 25px;">
+                   <div class="form-group">
+                       <label for="homeLocation" style="display: block; margin-bottom: 8px; font-weight: bold; color: #555;">Where do you live?</label>
+                       <input type="text" id="homeLocation" placeholder="e.g., London, United Kingdom" 
+                              value="${existingProfile.homeLocation ? existingProfile.homeLocation.city + ', ' + existingProfile.homeLocation.country : ''}"
+                              style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+                       <small style="color: #888; font-size: 14px;">This helps us compare weather, plugs, and costs vs your destination</small>
+                   </div>
+               </div>
+               
+               <div class="button-group" style="display: flex; gap: 15px; margin-top: 30px;">
+                   <button class="btn btn-primary" id="saveProfileBtn" 
+                           style="flex: 1; background: linear-gradient(45deg, #4CAF50, #45a049); color: white; padding: 15px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold;">
+                       ✨ Save & Continue
+                   </button>
+                   <button class="btn btn-secondary" id="skipProfileBtn"
+                           style="flex: 0 0 auto; background: #6c757d; color: white; padding: 15px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
+                       Skip for Now
+                   </button>
+               </div>
+           </div>
+       </div>
+   `;
+}
+
     bindProfileSetupEvents() {
         document.getElementById('saveProfileBtn').addEventListener('click', () => this.handleSaveProfile());
         document.getElementById('skipProfileBtn').addEventListener('click', () => this.handleSkipProfile());
