@@ -1,4 +1,7 @@
-// Trip Setup Component - Enhanced for multiple transportation & accommodation
+// Trip Setup Component - Enhanced for multiple transportation & accommodation + User Profile
+import { createUserProfile, isProfileComplete } from '../data/unified-data-model.js';
+import { countriesDatabase } from '../data/countries-database.js';
+
 export class TripSetup {
     constructor(options) {
         this.container = options.container;
@@ -6,12 +9,205 @@ export class TripSetup {
         this.onLoad = options.onLoad;
         this.onReset = options.onReset;
         
+        // NEW: Profile management
+        this.storageManager = null; // Will be injected
+        this.userProfile = null;
+        this.showingProfileSetup = false;
+        
         this.render();
         this.bindEvents();
         this.setDefaultDate();
     }
 
+    // ===== USER PROFILE SETUP METHODS =====
+    
+    setStorageManager(storageManager) {
+        this.storageManager = storageManager;
+        this.userProfile = storageManager ? storageManager.getUserProfile() : null;
+    }
+
+    checkProfileSetup() {
+        if (!this.storageManager) return false;
+        
+        this.userProfile = this.storageManager.getUserProfile();
+        
+        if (!this.userProfile || !isProfileComplete(this.userProfile)) {
+            this.showProfileSetup();
+            return false;
+        }
+        return true;
+    }
+
+    showProfileSetup() {
+        this.showingProfileSetup = true;
+        this.container.innerHTML = this.renderProfileSetup();
+        this.bindProfileSetupEvents();
+    }
+
+    renderProfileSetup() {
+        const existingProfile = this.userProfile || {};
+        
+        return `
+            <div class="profile-setup" id="profileSetup">
+                <div class="setup-header">
+                    <h2>👋 Welcome to TripMaster!</h2>
+                    <p>Let's personalize your travel experience</p>
+                </div>
+                
+                <div class="profile-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userName">What's your first name?</label>
+                            <input type="text" id="userName" placeholder="e.g., John" value="${existingProfile.name || ''}">
+                            <small>We'll use this to personalize your experience</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="homeLocation">Where do you live?</label>
+                            <input type="text" id="homeLocation" placeholder="e.g., London, United Kingdom" 
+                                   value="${existingProfile.homeLocation ? existingProfile.homeLocation.city + ', ' + existingProfile.homeLocation.country : ''}">
+                            <small>This helps us compare weather, plugs, and costs vs your destination</small>
+                        </div>
+                    </div>
+                    
+                    <div class="smart-preview" id="smartPreview" style="display: none;">
+                        <h4>🧠 What this enables:</h4>
+                        <ul id="previewList"></ul>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn btn-primary" id="saveProfileBtn">
+                            <span class="btn-icon">✨</span>
+                            <span class="btn-text">Save & Continue</span>
+                        </button>
+                        <button class="btn btn-secondary" id="skipProfileBtn">
+                            <span class="btn-text">Skip for Now</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    bindProfileSetupEvents() {
+        document.getElementById('saveProfileBtn').addEventListener('click', () => this.handleSaveProfile());
+        document.getElementById('skipProfileBtn').addEventListener('click', () => this.handleSkipProfile());
+        
+        // Show smart preview when both fields filled
+        const nameInput = document.getElementById('userName');
+        const locationInput = document.getElementById('homeLocation');
+        
+        const updatePreview = () => {
+            const name = nameInput.value.trim();
+            const location = locationInput.value.trim();
+            
+            if (name && location) {
+                this.showSmartPreview(name, location);
+            } else {
+                document.getElementById('smartPreview').style.display = 'none';
+            }
+        };
+        
+        nameInput.addEventListener('input', updatePreview);
+        locationInput.addEventListener('input', updatePreview);
+        
+        // Enter key handling
+        nameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') locationInput.focus();
+        });
+        locationInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.handleSaveProfile();
+        });
+    }
+
+    showSmartPreview(name, location) {
+        const preview = document.getElementById('smartPreview');
+        const list = document.getElementById('previewList');
+        
+        list.innerHTML = `
+            <li>🌡️ "${name}, Athens is 8°C colder than ${location.split(',')[0]} - pack warm clothes"</li>
+            <li>🔌 "Your UK plugs work in Greece - no adapter needed!"</li>
+            <li>💱 "Different currency - you'll need Euros"</li>
+            <li>🗣️ "Different language - essential Greek phrases included"</li>
+        `;
+        
+        preview.style.display = 'block';
+    }
+
+    async handleSaveProfile() {
+        const name = document.getElementById('userName').value.trim();
+        const homeLocationInput = document.getElementById('homeLocation').value.trim();
+        
+        if (!name) {
+            alert('Please enter your name');
+            return;
+        }
+        
+        if (!homeLocationInput) {
+            alert('Please enter your home location');
+            return;
+        }
+        
+        try {
+            // Parse location
+            const parts = homeLocationInput.split(',').map(s => s.trim());
+            if (parts.length !== 2) {
+                alert('Please enter location as "City, Country"');
+                return;
+            }
+            
+            const [city, countryName] = parts;
+            const country = countriesDatabase.dropdownList.find(c => 
+                c.name.toLowerCase().includes(countryName.toLowerCase())
+            );
+            
+            if (!country) {
+                alert(`Country "${countryName}" not found. Please use full country name.`);
+                return;
+            }
+            
+            // Create profile
+            const profileData = createUserProfile({
+                name: name,
+                homeCity: city,
+                homeCountry: country.name,
+                homeCountryCode: country.code
+            });
+            
+            // Save profile
+            if (this.storageManager.saveUserProfile(profileData)) {
+                this.userProfile = profileData;
+                this.showingProfileSetup = false;
+                this.render(); // Show main trip setup
+                
+                // Show success message
+                setTimeout(() => {
+                    alert(`Welcome ${name}! Your profile is set up. Now let's plan your trip from ${city}!`);
+                }, 100);
+            } else {
+                alert('Failed to save profile. Please try again.');
+            }
+            
+        } catch (error) {
+            console.error('Profile setup error:', error);
+            alert('Something went wrong. Please check your location format.');
+        }
+    }
+
+    handleSkipProfile() {
+        this.showingProfileSetup = false;
+        this.render(); // Show main trip setup without profile
+    }
+
+    
     render() {
+        // Check if we need to show profile setup first
+        if (!this.showingProfileSetup && !this.checkProfileSetup()) {
+            return; // Profile setup is now showing
+        }
+
         this.container.innerHTML = `
             <div class="trip-setup" id="tripSetup">
                 <h2>🗺️ Plan Your Trip</h2>
@@ -25,9 +221,17 @@ export class TripSetup {
                     <div class="section-content expanded" id="basicInfoContent">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="location">📍 Destination</label>
+                                <label for="homeLocation">🏠 From (Your Location)</label>
+                                <input type="text" id="homeLocation" placeholder="e.g., London, United Kingdom" 
+                                       ${this.userProfile ? `value="${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}" readonly` : ''}>
+                                <small>${this.userProfile ? `Hello ${this.userProfile.name}! We'll use this for intelligent comparisons` : 'Set up your profile for personalized travel intelligence'}</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="location">📍 To (Destination)</label>
                                 <input type="text" id="location" placeholder="e.g., Athens, Greece">
                             </div>
+                        </div>
+                        <div class="form-row">
                             <div class="form-group">
                                 <label for="nights">🌙 Number of Nights</label>
                                 <input type="number" id="nights" min="1" max="365" value="5">
@@ -227,8 +431,7 @@ export class TripSetup {
                         </div>
                     </div>
                 </div>
-                
-                <!-- Activities Section (unchanged) -->
+    <!-- Activities Section -->
                 <div class="form-section" id="activitiesSection">
                     <div class="section-header" data-toggle="activities">
                         <h3>🎯 Activities & Plans</h3>
@@ -238,19 +441,19 @@ export class TripSetup {
                         <div class="form-row">
                             <div class="form-group" style="grid-column: 1 / -1;">
                                 <label>🎯 Activities (check all that apply):</label>
-<div class="activities-grid">
-    <label><input type="checkbox" id="activity-business" value="business"> 💼 Business meetings</label>
-    <label><input type="checkbox" id="activity-sightseeing" value="sightseeing"> 🏛️ Sightseeing</label>
-    <label><input type="checkbox" id="activity-hiking" value="hiking"> 🥾 Hiking</label>
-    <label><input type="checkbox" id="activity-beach" value="beach"> 🏖️ Beach</label>
-    <label><input type="checkbox" id="activity-workout" value="workout"> 💪 Gym & fitness</label>
-    <label><input type="checkbox" id="activity-photography" value="photography"> 📸 Photography</label>
-    <label><input type="checkbox" id="activity-watersports" value="watersports"> 🏄‍♂️ Water sports</label>
-    <label><input type="checkbox" id="activity-entertainment" value="entertainment"> 🎭 Shows & nightlife</label>
-    <label><input type="checkbox" id="activity-shopping" value="shopping"> 🛍️ Shopping</label>
-    <label><input type="checkbox" id="activity-family" value="family"> 👶 Family travel</label>
-    <label><input type="checkbox" id="activity-relaxation" value="relaxation"> 🧘‍♀️ Relaxation & reading</label>
-</div>
+                                <div class="activities-grid">
+                                    <label><input type="checkbox" id="activity-business" value="business"> 💼 Business meetings</label>
+                                    <label><input type="checkbox" id="activity-sightseeing" value="sightseeing"> 🏛️ Sightseeing</label>
+                                    <label><input type="checkbox" id="activity-hiking" value="hiking"> 🥾 Hiking</label>
+                                    <label><input type="checkbox" id="activity-beach" value="beach"> 🏖️ Beach</label>
+                                    <label><input type="checkbox" id="activity-workout" value="workout"> 💪 Gym & fitness</label>
+                                    <label><input type="checkbox" id="activity-photography" value="photography"> 📸 Photography</label>
+                                    <label><input type="checkbox" id="activity-watersports" value="watersports"> 🏄‍♂️ Water sports</label>
+                                    <label><input type="checkbox" id="activity-entertainment" value="entertainment"> 🎭 Shows & nightlife</label>
+                                    <label><input type="checkbox" id="activity-shopping" value="shopping"> 🛍️ Shopping</label>
+                                    <label><input type="checkbox" id="activity-family" value="family"> 👶 Family travel</label>
+                                    <label><input type="checkbox" id="activity-relaxation" value="relaxation"> 🧘‍♀️ Relaxation & reading</label>
+                                </div>
                             </div>
                         </div>
                         
@@ -265,11 +468,25 @@ export class TripSetup {
 
                 <!-- ENHANCED Smart Tips Section -->
                 <div class="smart-tips" id="smartTips" style="display: none;">
-                    <h4>💡 Smart Tips for Your Multi-Modal Trip</h4>
+                    <h4>💡 Smart Tips for Your Trip</h4>
                     <ul id="tipsList"></ul>
                     <div class="trip-complexity" id="tripComplexity" style="display: none;">
                         <span class="complexity-badge">Complex Trip Detected</span>
                         <span class="complexity-description">Extra items will be added for your multi-transport/accommodation journey</span>
+                    </div>
+                    <div class="workflow-guidance" id="workflowGuidance" style="display: none;">
+                        <div class="workflow-step">
+                            <span class="step-number">1</span>
+                            <span class="step-text">Generate basic packing list</span>
+                        </div>
+                        <div class="workflow-step">
+                            <span class="step-number">2</span>
+                            <span class="step-text">Import your itinerary for enhanced recommendations</span>
+                        </div>
+                        <div class="workflow-step">
+                            <span class="step-number">3</span>
+                            <span class="step-text">Get activity-specific items automatically added</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -293,7 +510,7 @@ export class TripSetup {
     }
 
     bindEvents() {
-        // Button click handlers (unchanged)
+        // Button click handlers
         document.getElementById('generateBtn').addEventListener('click', () => this.handleGenerate());
         document.getElementById('loadBtn').addEventListener('click', () => this.onLoad());
         document.getElementById('resetBtn').addEventListener('click', () => this.onReset());
@@ -336,6 +553,16 @@ export class TripSetup {
         document.getElementById('location').addEventListener('input', (e) => {
             this.handleLocationChange(e.target.value);
         });
+
+        // NEW: Profile setup trigger
+        const homeLocationField = document.getElementById('homeLocation');
+        if (homeLocationField && !this.userProfile) {
+            homeLocationField.addEventListener('click', () => {
+                if (confirm('Set up your profile for personalized travel intelligence?')) {
+                    this.showProfileSetup();
+                }
+            });
+        }
     }
 
     // ENHANCED: Handle multiple transportation selections
@@ -402,12 +629,36 @@ export class TripSetup {
         this.updateSmartTips();
     }
 
-    // ENHANCED: Smart tips for multiple selections
+    // ENHANCED: Smart tips with profile intelligence
     updateSmartTips() {
         const tips = [];
         const selectedTransports = this.getSelectedTransportation();
         const selectedAccommodations = this.getSelectedAccommodation();
-        const location = document.getElementById('location').value;
+        const destination = document.getElementById('location').value;
+        
+        // NEW: Profile-based intelligence tips
+        if (this.userProfile && destination) {
+            const destParts = destination.split(',');
+            if (destParts.length === 2) {
+                const destCity = destParts[0].trim();
+                const userName = this.userProfile.name;
+                const homeCity = this.userProfile.homeLocation.city;
+                
+                tips.push(`🧠 ${userName}, we'll compare ${destCity} vs ${homeCity} for weather, plugs, and costs`);
+                
+                // Add specific intelligence preview
+                if (this.userProfile.homeLocation.countryCode !== 'GR' && destination.toLowerCase().includes('greece')) {
+                    tips.push('🔌 We\'ll check if your plugs work in Greece');
+                    tips.push('🌡️ We\'ll compare current weather between your locations');
+                    tips.push('💱 We\'ll check currency differences and exchange needs');
+                }
+                
+                // Show workflow guidance
+                if (selectedTransports.length > 0 || selectedAccommodations.length > 0) {
+                    document.getElementById('workflowGuidance').style.display = 'block';
+                }
+            }
+        }
         
         // Multi-modal transport tips
         if (selectedTransports.length > 1) {
@@ -439,7 +690,7 @@ export class TripSetup {
             }
         }
         
-        // Individual transport tips (your existing logic)
+        // Individual transport tips
         selectedTransports.forEach(transport => {
             switch(transport) {
                 case 'plane':
@@ -463,7 +714,7 @@ export class TripSetup {
             }
         });
         
-        // Individual accommodation tips (your existing logic)
+        // Individual accommodation tips
         selectedAccommodations.forEach(accommodation => {
             switch(accommodation) {
                 case 'hotel':
@@ -525,15 +776,15 @@ export class TripSetup {
         return selected;
     }
 
-    // ENHANCED: Trip data collection for multiple selections
+    // ENHANCED: Trip data collection with profile integration
     getTripData() {
-        // Get selected activities (unchanged)
+        // Get selected activities
         const activities = [];
         document.querySelectorAll('input[id^="activity-"]:checked').forEach(checkbox => {
             activities.push(checkbox.value);
         });
 
-        // NEW: Get all transportation methods and their options
+        // Get all transportation methods and their options
         const transportation = this.getSelectedTransportation();
         const transportationOptions = [];
         
@@ -561,7 +812,7 @@ export class TripSetup {
             }
         });
 
-        // NEW: Get all accommodation types and their options
+        // Get all accommodation types and their options
         const accommodation = this.getSelectedAccommodation();
         const accommodationOptions = [];
         
@@ -603,20 +854,25 @@ export class TripSetup {
             notes: document.getElementById('notes').value.trim(),
             activities: activities,
             
-            // ENHANCED: Arrays instead of single values
+            // Arrays instead of single values
             transportation: transportation,
             accommodation: accommodation,
             transportationOptions: transportationOptions,
             accommodationOptions: accommodationOptions,
             
-            // NEW: Complexity indicators
+            // NEW: Profile integration
+            userProfile: this.userProfile,
+            homeLocation: this.userProfile ? 
+                `${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}` : null,
+            
+            // Complexity indicators
             isMultiModal: transportation.length > 1,
             isMultiAccommodation: accommodation.length > 1,
             complexityScore: transportation.length + accommodation.length
         };
     }
 
-    // ENHANCED: Load trip data with multiple selections
+    // ENHANCED: Load trip data with profile awareness
     loadTripData(trip) {
         document.getElementById('location').value = trip.location || '';
         document.getElementById('nights').value = trip.nights || 5;
@@ -629,13 +885,13 @@ export class TripSetup {
             checkbox.checked = trip.activities && trip.activities.includes(checkbox.value);
         });
 
-        // NEW: Load multiple transportation selections
+        // Load multiple transportation selections
         const transportationArray = Array.isArray(trip.transportation) ? trip.transportation : [trip.transportation].filter(Boolean);
         document.querySelectorAll('input[id^="transport-"]').forEach(checkbox => {
             checkbox.checked = transportationArray.includes(checkbox.value);
         });
 
-        // NEW: Load multiple accommodation selections
+        // Load multiple accommodation selections
         const accommodationArray = Array.isArray(trip.accommodation) ? trip.accommodation : [trip.accommodation].filter(Boolean);
         document.querySelectorAll('input[id^="accommodation-"]').forEach(checkbox => {
             checkbox.checked = accommodationArray.includes(checkbox.value);
@@ -645,7 +901,7 @@ export class TripSetup {
         this.handleTransportationChanges();
         this.handleAccommodationChanges();
 
-        // Load all options (enhanced to handle more options)
+        // Load all options
         if (trip.transportationOptions) {
             const optionMappings = {
                 'international': 'internationalFlight',
@@ -707,7 +963,7 @@ export class TripSetup {
         this.updateSmartTips();
     }
 
-    // ENHANCED: Reset with multiple selections
+    // ENHANCED: Reset with profile preservation
     reset() {
         document.getElementById('location').value = '';
         document.getElementById('nights').value = '5';
@@ -719,12 +975,12 @@ export class TripSetup {
             checkbox.checked = false;
         });
         
-        // NEW: Reset all transportation checkboxes
+        // Reset all transportation checkboxes
         document.querySelectorAll('input[id^="transport-"]').forEach(checkbox => {
             checkbox.checked = false;
         });
         
-        // NEW: Reset all accommodation checkboxes
+        // Reset all accommodation checkboxes
         document.querySelectorAll('input[id^="accommodation-"]').forEach(checkbox => {
             checkbox.checked = false;
         });
@@ -737,6 +993,7 @@ export class TripSetup {
         // Hide conditional options and tips
         document.getElementById('conditionalOptions').style.display = 'none';
         document.getElementById('smartTips').style.display = 'none';
+        document.getElementById('workflowGuidance').style.display = 'none';
         
         // Reset section states
         document.getElementById('basicInfoContent').classList.add('expanded');
@@ -752,7 +1009,7 @@ export class TripSetup {
         this.setDefaultDate();
     }
 
-    // ENHANCED: Generate with validation for multiple selections
+    // ENHANCED: Generate with profile integration and validation
     handleGenerate() {
         const tripData = this.getTripData();
         
@@ -761,7 +1018,7 @@ export class TripSetup {
             return;
         }
 
-        // ENHANCED: Validation for multiple selections
+        // Enhanced validation for multiple selections
         if (tripData.transportation.length === 0) {
             if (!confirm('No transportation methods selected. The packing list will be more generic without this info. Continue anyway?')) {
                 return;
@@ -779,6 +1036,12 @@ export class TripSetup {
             if (!confirm(`Complex trip detected (${tripData.transportation.length} transport methods + ${tripData.accommodation.length} accommodation types). This will generate a comprehensive but potentially long packing list. Continue?`)) {
                 return;
             }
+        }
+
+        // Profile-aware messaging
+        if (this.userProfile) {
+            const message = `Perfect ${this.userProfile.name}! Generating your smart packing list with travel intelligence for ${tripData.location}.`;
+            console.log(message);
         }
 
         this.onGenerate(tripData);
@@ -801,7 +1064,7 @@ export class TripSetup {
     }
 
     handleTripTypeChange(tripType) {
-        // Enhanced smart defaults for multiple selections
+        // Enhanced smart defaults for multiple selections with profile awareness
         const suggestions = {
             'business': { 
                 transport: ['plane'], 
