@@ -176,7 +176,7 @@ export class TripSetup {
             });
             
 // Save profile
-    if (this.storageManager.saveUserProfile(profileData)) {
+if (this.storageManager.saveUserProfile(profileData)) {
             this.userProfile = profileData;
             this.showingProfileSetup = false;
             
@@ -506,17 +506,15 @@ export class TripSetup {
                 </div>
             </div>
         `;
-        setTimeout(() => {
-          this.bindEvents();
-        this.setDefaultDate();
-        
-        // 🔧 FIX: Load pending data after DOM is ready
-        if (this.pendingTripData) {
-            setTimeout(() => {
-                this.loadTripData(this.pendingTripData);
-            }, 100);
-        }
-    }
+this.bindEvents();
+this.setDefaultDate();
+
+// Load pending data if exists
+if (this.pendingTripData) {
+    setTimeout(() => {
+        this.loadTripData(this.pendingTripData);
+    }, 100);
+}
 
     bindEvents() {
         // Button click handlers
@@ -971,6 +969,8 @@ export class TripSetup {
                 if (checkbox) checkbox.checked = true;
             });
         }
+          this.pendingTripData = null;
+
 
         // Update smart tips
         this.updateSmartTips();
