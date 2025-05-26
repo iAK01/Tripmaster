@@ -94,10 +94,11 @@ export class LocationService {
             const countryInfo = countriesDatabase.getCountryMetadata(countryCode);
             const countryData = countriesDatabase.getCountryByCode(countryCode);
 
-            // Try to get coordinates from geocoding
-            let coordinates = null;
-            let geocodingSuccess = false;
-            
+                // Try to get coordinates from known data first, then geocoding
+        let coordinates = knownLocationData?.coordinates || null;
+        let geocodingSuccess = !!coordinates;
+        
+        if (!coordinates) {
             try {
                 const geoData = await this.geocodeLocation(`${city}, ${countryData.name}`);
                 coordinates = geoData.coordinates;
@@ -106,6 +107,7 @@ export class LocationService {
                 console.warn(`Geocoding failed for ${city}, ${countryCode}:`, geoError.message);
                 // Continue without coordinates - we'll still have country-level data
             }
+        }
 
             // Build enriched location data
             const enrichedData = {
@@ -252,20 +254,38 @@ export class LocationService {
         }
     }
 
+    async getCurrentWeather(locationString) {
+    try {
+        // Import your existing weather API
+        const { WeatherAPI } = await import('./weather-api.js');
+        const weatherService = new WeatherAPI();
+        
+        // Get today's weather (1 day forecast gives current conditions)
+        const weatherData = await weatherService.getWeather(locationString, 1, new Date());
+        
+        return weatherData && weatherData.length > 0 ? weatherData[0] : null;
+        
+    } catch (error) {
+        console.warn(`Current weather fetch failed for ${locationString}:`, error);
+        return null;
+    }
+}
+
     /**
      * Calculate travel intelligence (your brilliant idea!)
      */
-    calculateTravelIntelligence(originData, destinationData) {
-        const intelligence = {
-            electrical: this.compareElectricalSystems(originData, destinationData),
-            currency: this.compareCurrencies(originData, destinationData),
-            language: this.compareLanguages(originData, destinationData),
-            timezone: this.compareTimezones(originData, destinationData),
-            weather: this.compareWeather(originData, destinationData)
-        };
+    calculateTravelIntelligence(originData, destinationData, originWeather = null, destinationWeather = null, userProfile = null) {
+    const intelligence = {
+        electrical: this.compareElectricalSystems(originData, destinationData),
+        currency: this.compareCurrencies(originData, destinationData),
+        language: this.compareLanguages(originData, destinationData),
+        timezone: this.compareTimezones(originData, destinationData),
+        weather: this.compareWeather(originData, destinationData, originWeather, destinationWeather),
+        personalization: this.addPersonalization(originData, destinationData, userProfile)
+    };
 
-        return intelligence;
-    }
+    return intelligence;
+}
 
     /**
      * Compare electrical systems (your genius idea!)
@@ -338,14 +358,59 @@ export class LocationService {
     /**
      * Compare weather (if both have current weather)
      */
-    compareWeather(origin, destination) {
-        // This would need current weather data for both locations
-        // For now, return placeholder
+    compareWeather(origin, destination, originWeather, destinationWeather) {
+    if (!originWeather || !destinationWeather) {
         return {
             hasComparison: false,
             recommendation: `🌤️ Check current weather for both locations to compare`
         };
     }
+
+    const tempDiff = destinationWeather.temp - originWeather.temp;
+    const recommendations = [];
+    
+    if (Math.abs(tempDiff) >= 5) {
+        if (tempDiff > 0) {
+            recommendations.push(`🌡️ ${tempDiff}°C warmer in ${destination.city} - pack lighter clothes`);
+        } else {
+            recommendations.push(`🌡️ ${Math.abs(tempDiff)}°C colder in ${destination.city} - pack warmer clothes`);
+        }
+    } else {
+        recommendations.push(`🌡️ Similar temperature (${tempDiff > 0 ? '+' : ''}${tempDiff}°C difference)`);
+    }
+
+    // Weather condition comparison
+    if (originWeather.condition !== destinationWeather.condition) {
+        recommendations.push(`☔ Different conditions: ${originWeather.condition} → ${destinationWeather.condition}`);
+    }
+
+    return {
+        hasComparison: true,
+        temperatureDifference: tempDiff,
+        originWeather: originWeather,
+        destinationWeather: destinationWeather,
+        recommendations: recommendations,
+        recommendation: recommendations.join(' • ')
+    };
+}
+    addPersonalization(origin, destination, userProfile) {
+    if (!userProfile || !userProfile.name) {
+        return {
+            hasPersonalization: false,
+            greeting: null
+        };
+    }
+
+    const greeting = `${userProfile.name}, you're traveling from ${origin.city} to ${destination.city}`;
+    
+    return {
+        hasPersonalization: true,
+        greeting: greeting,
+        userName: userProfile.name,
+        homeLocation: `${origin.city}, ${origin.country}`,
+        destinationLocation: `${destination.city}, ${destination.country}`
+    };
+}
 
     /**
      * Get essential phrases for country
