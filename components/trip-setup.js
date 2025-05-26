@@ -44,53 +44,6 @@ if (!this.userProfile || !isProfileComplete(this.userProfile)) {
         this.bindProfileSetupEvents();
     }
 
-    renderProfileSetup() {
-        const existingProfile = this.userProfile || {};
-        
-        return `
-            <div class="profile-setup" id="profileSetup">
-                <div class="setup-header">
-                    <h2>👋 Welcome to TripMaster!</h2>
-                    <p>Let's personalize your travel experience</p>
-                </div>
-                
-                <div class="profile-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="userName">What's your first name?</label>
-                            <input type="text" id="userName" placeholder="e.g., John" value="${existingProfile.name || ''}">
-                            <small>We'll use this to personalize your experience</small>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="homeLocation">Where do you live?</label>
-                            <input type="text" id="homeLocation" placeholder="e.g., London, United Kingdom" 
-                                   value="${existingProfile.homeLocation ? existingProfile.homeLocation.city + ', ' + existingProfile.homeLocation.country : ''}">
-                            <small>This helps us compare weather, plugs, and costs vs your destination</small>
-                        </div>
-                    </div>
-                    
-                    <div class="smart-preview" id="smartPreview" style="display: none;">
-                        <h4>🧠 What this enables:</h4>
-                        <ul id="previewList"></ul>
-                    </div>
-                    
-                    <div class="button-group">
-                        <button class="btn btn-primary" id="saveProfileBtn">
-                            <span class="btn-icon">✨</span>
-                            <span class="btn-text">Save & Continue</span>
-                        </button>
-                        <button class="btn btn-secondary" id="skipProfileBtn">
-                            <span class="btn-text">Skip for Now</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
   renderProfileSetup() {
    const existingProfile = this.userProfile || {};
    
