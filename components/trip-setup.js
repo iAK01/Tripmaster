@@ -3,16 +3,17 @@ import { createUserProfile, isProfileComplete } from '../data/unified-data-model
 import { countriesDatabase } from '../data/countries-database.js';
 
 export class TripSetup {
-    constructor(options) {
+  constructor(options) {
         this.container = options.container;
         this.onGenerate = options.onGenerate;
         this.onLoad = options.onLoad;
         this.onReset = options.onReset;
         
-        // NEW: Profile management
-        this.storageManager = null; // Will be injected
+        // Profile management
+        this.storageManager = null;
         this.userProfile = null;
         this.showingProfileSetup = false;
+        this.pendingTripData = null; // 🔧 FIX: Store data if DOM not ready
         
         this.render();
     }
@@ -175,16 +176,14 @@ export class TripSetup {
             });
             
 // Save profile
-        if (this.storageManager.saveUserProfile(profileData)) {
+    if (this.storageManager.saveUserProfile(profileData)) {
             this.userProfile = profileData;
             this.showingProfileSetup = false;
             
-            // ===== FIXED: Render with proper event binding =====
-            this.render(); // This now calls bindEvents() internally after HTML is ready
+            this.render(); // Clean re-render
             
-            // Show success message
             setTimeout(() => {
-                alert(`Welcome ${name}! Your profile is set up. Now let's plan your trip from ${city}!`);
+                alert(`Welcome ${name}! Profile set up successfully.`);
             }, 100);
         } else {
             alert('Failed to save profile. Please try again.');
@@ -508,9 +507,15 @@ export class TripSetup {
             </div>
         `;
         setTimeout(() => {
-        this.bindEvents();
+          this.bindEvents();
         this.setDefaultDate();
-    }, 0);
+        
+        // 🔧 FIX: Load pending data after DOM is ready
+        if (this.pendingTripData) {
+            setTimeout(() => {
+                this.loadTripData(this.pendingTripData);
+            }, 100);
+        }
     }
 
     bindEvents() {
@@ -878,6 +883,10 @@ export class TripSetup {
 
     // ENHANCED: Load trip data with profile awareness
     loadTripData(trip) {
+                if (!document.getElementById('location')) {
+            this.pendingTripData = trip; // Store for later
+            return;
+        }
         document.getElementById('location').value = trip.location || '';
         document.getElementById('nights').value = trip.nights || 5;
         document.getElementById('tripType').value = trip.tripType || 'business';
