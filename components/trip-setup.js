@@ -202,9 +202,9 @@ if (this.storageManager.saveUserProfile(profileData)) {
     
     render() {
         // Check if we need to show profile setup first
-        if (!this.showingProfileSetup && !this.checkProfileSetup()) {
-            return; // Profile setup is now showing
-        }
+       if (!this.checkProfileSetup()) {
+    return; // Profile setup is now showing
+}
 
         this.container.innerHTML = `
             <div class="trip-setup" id="tripSetup">
