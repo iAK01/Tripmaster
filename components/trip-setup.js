@@ -30,9 +30,10 @@ export class TripSetup {
         
         this.userProfile = this.storageManager.getUserProfile();
         
-        if (!this.userProfile || !isProfileComplete(this.userProfile)) {
-            this.showProfileSetup();
-            return false;
+if (!this.userProfile || !isProfileComplete(this.userProfile)) {
+    this.showProfileSetup();
+    return false;
+}
         }
         return true;
     }
