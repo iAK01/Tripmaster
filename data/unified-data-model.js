@@ -36,6 +36,29 @@ export const UnifiedTripModel = {
     created: '',
     lastModified: ''
   },
+    // NEW: User Profile (persistent across all trips)
+  userProfile: {
+    name: '',
+    homeLocation: {
+      city: '',
+      country: '',
+      countryCode: '',
+      coordinates: { lat: null, lng: null },
+      timezone: '',
+      currency: '',
+      currencySymbol: '',
+      electricalPlug: '',
+      currentWeather: null
+    },
+    preferences: {
+      units: 'metric', // 'metric' or 'imperial'
+      language: 'en',
+      defaultTripType: 'leisure'
+    },
+    setupComplete: false,
+    created: '',
+    lastUpdated: ''
+  },
 
   // Activities & Schedule (from your work trip JSON structure)
   itinerary: {
@@ -482,6 +505,51 @@ export function calculateTravelIntelligence(trip) {
   
   return trip;
 }
+// NEW: User Profile Management Functions
+export function createUserProfile(basicInfo = {}) {
+  const profile = {
+    name: basicInfo.name || '',
+    homeLocation: {
+      city: basicInfo.homeCity || '',
+      country: basicInfo.homeCountry || '',
+      countryCode: basicInfo.homeCountryCode || '',
+      coordinates: { lat: null, lng: null },
+      timezone: 'UTC',
+      currency: 'USD',
+      currencySymbol: '$',
+      electricalPlug: 'Unknown',
+      currentWeather: null
+    },
+    preferences: {
+      units: 'metric',
+      language: 'en',
+      defaultTripType: 'leisure'
+    },
+    setupComplete: !!(basicInfo.name && basicInfo.homeCity),
+    created: new Date().toISOString(),
+    lastUpdated: new Date().toISOString()
+  };
+  
+  return profile;
+}
+
+export function isProfileComplete(profile) {
+  return profile && 
+         profile.name && 
+         profile.homeLocation.city && 
+         profile.homeLocation.countryCode &&
+         profile.setupComplete;
+}
+
+export function updateProfile(existingProfile, updates) {
+  return {
+    ...existingProfile,
+    ...updates,
+    lastUpdated: new Date().toISOString(),
+    setupComplete: !!(updates.name || existingProfile.name) && 
+                   !!(updates.homeLocation?.city || existingProfile.homeLocation?.city)
+  };
+}
 
 // Helper functions for recommendations
 function getWeatherRecommendation(tempDifference) {
@@ -532,6 +600,12 @@ export const TripValidation = {
            trip.tripInfo.destination.countryCode &&
            trip.tripInfo.startDate &&
            trip.tripInfo.nights > 0;
+  },
+
+   canUseProfileIntelligence(trip, profile) {
+    return this.isValidTrip(trip) && 
+           isProfileComplete(profile) &&
+           trip.tripInfo.destination.countryCode !== profile.homeLocation.countryCode;
   },
 
   getValidationErrors(trip) {
