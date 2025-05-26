@@ -15,7 +15,6 @@ export class TripSetup {
         this.showingProfileSetup = false;
         
         this.render();
-        this.bindEvents();
         this.setDefaultDate();
     }
 
@@ -176,25 +175,27 @@ export class TripSetup {
                 homeCountryCode: country.code
             });
             
-            // Save profile
-            if (this.storageManager.saveUserProfile(profileData)) {
-                this.userProfile = profileData;
-                this.showingProfileSetup = false;
-                this.render(); // Show main trip setup
-                
-                // Show success message
-                setTimeout(() => {
-                    alert(`Welcome ${name}! Your profile is set up. Now let's plan your trip from ${city}!`);
-                }, 100);
-            } else {
-                alert('Failed to save profile. Please try again.');
-            }
+// Save profile
+        if (this.storageManager.saveUserProfile(profileData)) {
+            this.userProfile = profileData;
+            this.showingProfileSetup = false;
             
-        } catch (error) {
-            console.error('Profile setup error:', error);
-            alert('Something went wrong. Please check your location format.');
+            // ===== FIXED: Render with proper event binding =====
+            this.render(); // This now calls bindEvents() internally after HTML is ready
+            
+            // Show success message
+            setTimeout(() => {
+                alert(`Welcome ${name}! Your profile is set up. Now let's plan your trip from ${city}!`);
+            }, 100);
+        } else {
+            alert('Failed to save profile. Please try again.');
         }
+        
+    } catch (error) {
+        console.error('Profile setup error:', error);
+        alert('Something went wrong. Please check your location format.');
     }
+}
 
     handleSkipProfile() {
         this.showingProfileSetup = false;
