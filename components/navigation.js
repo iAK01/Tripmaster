@@ -1,6 +1,7 @@
+
+// components/navigation.js - Tab navigation system for TripMaster - COMPLETE & FIXED
 import { isProfileComplete } from '../data/unified-data-model.js';
 
-// components/navigation.js - Tab navigation system for TripMaster
 export class Navigation {
     constructor(options) {
         this.container = options.container;
@@ -10,6 +11,7 @@ export class Navigation {
         this.userProfile = null;
         this.storageManager = null; // Will be injected
         
+        // FIXED: Ensure all tabs are properly defined
         this.tabs = [
             { id: 'overview', label: '📋 Overview', icon: '📋' },
             { id: 'setup', label: '🧳 Trip Setup', icon: '🧳' },
@@ -18,11 +20,17 @@ export class Navigation {
             { id: 'local-info', label: '🗺️ Local Info', icon: '🗺️' }
         ];
         
+        // DEBUG: Log tabs to ensure they're correct
+        console.log('Navigation tabs initialized:', this.tabs.map(t => t.label));
+        
         this.render();
         this.bindEvents();
     }
 
     render() {
+        // DEBUG: Log rendering
+        console.log('Rendering navigation with tabs:', this.tabs.length);
+        
         this.container.innerHTML = `
             <nav class="tripmaster-navigation">
                <div class="nav-header">
@@ -49,6 +57,12 @@ export class Navigation {
                 </div>
             </nav>
         `;
+        
+        // DEBUG: Verify rendered tabs
+        setTimeout(() => {
+            const renderedTabs = this.container.querySelectorAll('.nav-tab');
+            console.log('Rendered tab buttons:', renderedTabs.length, Array.from(renderedTabs).map(t => t.textContent.trim()));
+        }, 100);
     }
 
     bindEvents() {
@@ -56,6 +70,7 @@ export class Navigation {
         this.container.querySelectorAll('.nav-tab').forEach(tab => {
             tab.addEventListener('click', (e) => {
                 const tabId = e.currentTarget.getAttribute('data-tab');
+                console.log('Tab clicked:', tabId); // DEBUG
                 this.switchTab(tabId);
             });
         });
@@ -73,6 +88,7 @@ export class Navigation {
                 
                 if (tabMap[e.key]) {
                     e.preventDefault();
+                    console.log('Keyboard shortcut:', e.key, '→', tabMap[e.key]); // DEBUG
                     this.switchTab(tabMap[e.key]);
                 }
             }
@@ -80,6 +96,8 @@ export class Navigation {
     }
 
     switchTab(tabId) {
+        console.log('Switching to tab:', tabId, 'from:', this.currentTab); // DEBUG
+        
         if (tabId === this.currentTab) return;
         
         // Update visual state
@@ -100,11 +118,16 @@ export class Navigation {
             
             // Notify parent component
             if (this.onTabChange) {
+                console.log('Calling onTabChange for:', tabId); // DEBUG
                 this.onTabChange(tabId);
+            } else {
+                console.warn('No onTabChange callback defined!'); // DEBUG
             }
             
             // Save current tab to localStorage
             localStorage.setItem('tripmaster-current-tab', tabId);
+        } else {
+            console.error('Tab not found:', tabId); // DEBUG
         }
     }
 
@@ -162,14 +185,16 @@ export class Navigation {
         return Math.round(totalProgress);
     }
 
-        // NEW: Profile and personalization methods
+    // NEW: Profile and personalization methods
     setStorageManager(storageManager) {
         this.storageManager = storageManager;
         this.userProfile = storageManager ? storageManager.getUserProfile() : null;
+        console.log('Storage manager set, user profile:', this.userProfile?.name || 'None'); // DEBUG
     }
 
     updateUserProfile(profile) {
         this.userProfile = profile;
+        console.log('User profile updated:', profile?.name || 'None'); // DEBUG
         // Re-render header to show updated personalization
         this.updateHeader();
     }
@@ -237,6 +262,7 @@ export class Navigation {
     loadSavedTab() {
         const savedTab = localStorage.getItem('tripmaster-current-tab');
         if (savedTab && this.tabs.find(t => t.id === savedTab)) {
+            console.log('Loading saved tab:', savedTab); // DEBUG
             this.switchTab(savedTab);
         }
     }
@@ -256,6 +282,52 @@ export class Navigation {
             badge.className = 'tab-badge';
             badge.textContent = count;
             tab.appendChild(badge);
+        }
+    }
+
+    // DEBUGGING METHODS
+    debugState() {
+        console.log('=== Navigation Debug ===');
+        console.log('Current tab:', this.currentTab);
+        console.log('Defined tabs:', this.tabs);
+        console.log('Container:', this.container);
+        console.log('Rendered tab buttons:', this.container.querySelectorAll('.nav-tab').length);
+        console.log('User profile:', this.userProfile);
+        console.log('Storage manager:', !!this.storageManager);
+    }
+
+    // MANUAL TAB FORCING (for debugging)
+    forceShowTab(tabId) {
+        console.log('Force showing tab:', tabId);
+        
+        // Remove active from all tabs
+        this.container.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Add active to target tab
+        const targetTab = this.container.querySelector(`[data-tab="${tabId}"]`);
+        if (targetTab) {
+            targetTab.classList.add('active');
+            this.currentTab = tabId;
+        }
+        
+        // Force show content section
+        document.querySelectorAll('.tab-content').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        const targetSection = document.getElementById(`${tabId}-section`);
+        if (targetSection) {
+            targetSection.classList.add('active');
+            console.log('Forced section active:', tabId);
+        } else {
+            console.error('Section not found:', `${tabId}-section`);
+        }
+        
+        // Call tab change if callback exists
+        if (this.onTabChange) {
+            this.onTabChange(tabId);
         }
     }
 }
