@@ -15,53 +15,71 @@ export class LocationService {
     /**
      * Main method: Enrich both origin and destination locations
      */
-    async enrichTripLocations(originInput, destinationInput, tripDuration, startDate) {
-        try {
-            // Enrich both locations in parallel
-            const [originData, destinationData] = await Promise.all([
-                this.enrichSingleLocation(originInput),
-                this.enrichSingleLocation(destinationInput)
+    async enrichTripLocations(originInput, destinationInput, tripDuration, startDate, userProfile = null) {
+    try {
+        // Use user profile home location as origin if available
+        const actualOriginInput = userProfile?.homeLocation?.city && userProfile?.homeLocation?.country ? 
+            `${userProfile.homeLocation.city}, ${userProfile.homeLocation.country}` : 
+            originInput;
+
+        // Enrich both locations in parallel
+        const [originData, destinationData] = await Promise.all([
+            this.enrichSingleLocation(actualOriginInput, userProfile?.homeLocation),
+            this.enrichSingleLocation(destinationInput)
+        ]);
+
+        // Get weather for both locations for comparison
+        let originWeather = null;
+        let destinationWeather = null;
+        
+        if (originData.coordinates && destinationData.coordinates) {
+            const [originWeatherData, destWeatherData] = await Promise.all([
+                this.getCurrentWeather(actualOriginInput),
+                this.getLocationWeather(destinationInput, tripDuration, startDate)
             ]);
-
-            // Get weather for destination
-            let weatherData = null;
-            if (destinationData.coordinates) {
-                weatherData = await this.getLocationWeather(
-                    `${destinationData.city}, ${destinationData.country}`,
-                    tripDuration,
-                    startDate
-                );
-            }
-
-            // Calculate travel intelligence
-            const travelIntelligence = this.calculateTravelIntelligence(originData, destinationData);
-
-            return {
-                origin: originData,
-                destination: {
-                    ...destinationData,
-                    weather: weatherData
-                },
-                travelIntelligence,
-                success: true
-            };
-
-        } catch (error) {
-            console.error('Location enrichment failed:', error);
-            return {
-                origin: this.getFallbackLocationData(originInput),
-                destination: this.getFallbackLocationData(destinationInput),
-                travelIntelligence: this.getDefaultTravelIntelligence(),
-                success: false,
-                error: error.message
-            };
+            
+            originWeather = originWeatherData;
+            destinationWeather = destWeatherData;
         }
+
+        // Calculate travel intelligence with weather comparison
+        const travelIntelligence = this.calculateTravelIntelligence(
+            originData, 
+            destinationData, 
+            originWeather, 
+            destinationWeather,
+            userProfile
+        );
+
+        return {
+            origin: {
+                ...originData,
+                currentWeather: originWeather
+            },
+            destination: {
+                ...destinationData,
+                weather: destinationWeather
+            },
+            travelIntelligence,
+            success: true
+        };
+
+    } catch (error) {
+        console.error('Location enrichment failed:', error);
+        return {
+            origin: this.getFallbackLocationData(actualOriginInput || originInput),
+            destination: this.getFallbackLocationData(destinationInput),
+            travelIntelligence: this.getDefaultTravelIntelligence(),
+            success: false,
+            error: error.message
+        };
     }
+}
 
     /**
      * Enrich a single location (origin or destination)
      */
-    async enrichSingleLocation(locationInput) {
+    async enrichSingleLocation(locationInput, knownLocationData = null) {
         const { city, countryCode } = this.parseLocationInput(locationInput);
         
         // Check cache first
