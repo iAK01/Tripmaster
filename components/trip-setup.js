@@ -15,7 +15,6 @@ export class TripSetup {
         this.showingProfileSetup = false;
         
         this.render();
-        this.setDefaultDate();
     }
 
     // ===== USER PROFILE SETUP METHODS =====
@@ -508,6 +507,10 @@ export class TripSetup {
                 </div>
             </div>
         `;
+        setTimeout(() => {
+        this.bindEvents();
+        this.setDefaultDate();
+    }, 0);
     }
 
     bindEvents() {
