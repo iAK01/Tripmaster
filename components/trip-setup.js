@@ -33,7 +33,7 @@ export class TripSetup {
 if (!this.userProfile || !isProfileComplete(this.userProfile)) {
     this.showProfileSetup();
     return false;
-}
+
         }
         return true;
     }
