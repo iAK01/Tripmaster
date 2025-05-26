@@ -506,6 +506,7 @@ if (this.storageManager.saveUserProfile(profileData)) {
                 </div>
             </div>
         `;
+      
 this.bindEvents();
 this.setDefaultDate();
 
@@ -515,7 +516,7 @@ if (this.pendingTripData) {
         this.loadTripData(this.pendingTripData);
     }, 100);
 }
-
+ }
     bindEvents() {
         // Button click handlers
         document.getElementById('generateBtn').addEventListener('click', () => this.handleGenerate());
