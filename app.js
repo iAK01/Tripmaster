@@ -681,6 +681,10 @@ class TripMaster {
 
 updatePackingComponents() {
     if (Object.keys(this.state.trip.items).length > 0) {
+        // Use loadItems method which exists in your ChecklistDisplay
+        this.checklistDisplay.loadItems(this.state.trip.items, this.state.trip.completedItems);
+        
+        // Then call render with trip data for the summary
         this.checklistDisplay.render(this.state.trip.items, this.state.trip);
     }
     
