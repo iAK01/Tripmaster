@@ -704,6 +704,11 @@ updatePackingComponents() {
             console.error('❌ checklistDisplay or loadItems method missing');
         }
     }
+    
+    if (this.state.trip.weather) {
+        this.weatherDisplay.displayWeather(this.state.trip.weather);
+    }
+}
 
     updateItineraryComponents() {
         if (this.state.trip.itinerary && this.state.trip.itinerary.days.length > 0) {
