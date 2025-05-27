@@ -151,9 +151,9 @@ class TripMaster {
         // CRITICAL: Make itineraryDisplay available globally
         window.itineraryDisplay = this.itineraryDisplay;
         console.log('DEBUG: ChecklistDisplay object:', this.checklistDisplay);
-console.log('DEBUG: ChecklistDisplay methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(this.checklistDisplay)));
-console.log('DEBUG: Has loadItems?', typeof this.checklistDisplay.loadItems);
-console.log('DEBUG: Has render?', typeof this.checklistDisplay.render);
+        console.log('DEBUG: ChecklistDisplay constructor:', ChecklistDisplay);
+        console.log('DEBUG: ChecklistDisplay prototype methods:', Object.getOwnPropertyNames(ChecklistDisplay.prototype));
+        console.log('DEBUG: Has loadItems?', typeof this.checklistDisplay.loadItems);
         console.log('✅ All components initialized');
     }
 
