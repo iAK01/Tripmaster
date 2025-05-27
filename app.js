@@ -694,14 +694,16 @@ try {
     }
 
 updatePackingComponents() {
-    if (Object.keys(this.state.trip.items).length > 0) {
-        this.checklistDisplay.loadItems(this.state.trip.items, this.state.trip.completedItems);
-    }
+    console.log('🔍 DEBUG: checklistDisplay exists?', !!this.checklistDisplay);
+    console.log('🔍 DEBUG: checklistDisplay type:', typeof this.checklistDisplay);
     
-    if (this.state.trip.weather) {
-        this.weatherDisplay.displayWeather(this.state.trip.weather);
+    if (Object.keys(this.state.trip.items).length > 0) {
+        if (this.checklistDisplay && typeof this.checklistDisplay.loadItems === 'function') {
+            this.checklistDisplay.loadItems(this.state.trip.items, this.state.trip.completedItems);
+        } else {
+            console.error('❌ checklistDisplay or loadItems method missing');
+        }
     }
-}
 
     updateItineraryComponents() {
         if (this.state.trip.itinerary && this.state.trip.itinerary.days.length > 0) {
