@@ -679,16 +679,15 @@ class TripMaster {
         this.updateNavigationProgress();
     }
 
-    updatePackingComponents() {
-        if (Object.keys(this.state.trip.items).length > 0) {
-           this.checklistDisplay.render(this.state.trip.items, this.state.trip);
-            this.checklistDisplay.updateTripSummary(this.state.trip);
-        }
-        
-        if (this.state.trip.weather) {
-            this.weatherDisplay.displayWeather(this.state.trip.weather);
-        }
+updatePackingComponents() {
+    if (Object.keys(this.state.trip.items).length > 0) {
+        this.checklistDisplay.render(this.state.trip.items, this.state.trip);
     }
+    
+    if (this.state.trip.weather) {
+        this.weatherDisplay.displayWeather(this.state.trip.weather);
+    }
+}
 
     updateItineraryComponents() {
         if (this.state.trip.itinerary && this.state.trip.itinerary.days.length > 0) {
