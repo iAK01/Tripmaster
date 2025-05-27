@@ -33,6 +33,13 @@ export class WeatherDisplay {
         return this.weatherData;
     }
 
+    displayWeather(weatherData) {
+    if (weatherData && weatherData.length > 0) {
+        this.weatherData = weatherData;
+        this.render(weatherData);
+    }
+}
+
     render(weatherData) {
         const section = this.container.querySelector('.weather-section');
         const weatherCards = this.container.querySelector('#weatherCards');
