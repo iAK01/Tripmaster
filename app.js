@@ -114,13 +114,19 @@ class TripMaster {
             container: document.getElementById('progress-tracking-section')
         });
 
-        // Checklist display
-        this.checklistDisplay = new ChecklistDisplay({
-            container: document.getElementById('checklist-display-section'),
-            onItemToggle: (category, item) => this.handleItemToggle(category, item),
-            onItemAdd: (category, item, quantity) => this.handleItemAdd(category, item, quantity),
-            onNoteUpdate: (category, item, note) => this.handleNoteUpdate(category, item, note)
-        });
+    console.log('🔧 About to create ChecklistDisplay...');
+try {
+    this.checklistDisplay = new ChecklistDisplay({
+        container: document.getElementById('checklist-display-section'),
+        onItemToggle: (category, item) => this.handleItemToggle(category, item),
+        onItemAdd: (category, item, quantity) => this.handleItemAdd(category, item, quantity),
+        onNoteUpdate: (category, item, note) => this.handleNoteUpdate(category, item, note)
+    });
+    console.log('✅ ChecklistDisplay created successfully');
+} catch (error) {
+    console.error('❌ ChecklistDisplay creation FAILED:', error);
+    console.error('Error details:', error.stack);
+}
             // PUT THE DEBUG CODE RIGHT HERE - AFTER THE CHECKLIST CREATION:
     console.log('ChecklistDisplay created:', this.checklistDisplay);
     console.log('ChecklistDisplay methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(this.checklistDisplay)));
