@@ -121,6 +121,11 @@ class TripMaster {
             onItemAdd: (category, item, quantity) => this.handleItemAdd(category, item, quantity),
             onNoteUpdate: (category, item, note) => this.handleNoteUpdate(category, item, note)
         });
+            // PUT THE DEBUG CODE RIGHT HERE - AFTER THE CHECKLIST CREATION:
+    console.log('ChecklistDisplay created:', this.checklistDisplay);
+    console.log('ChecklistDisplay methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(this.checklistDisplay)));
+    console.log('Has loadItems?', typeof this.checklistDisplay.loadItems);
+    console.log('Has render?', typeof this.checklistDisplay.render);
 
         // Itinerary display
         this.itineraryDisplay = new ItineraryDisplay({
