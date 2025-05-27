@@ -12,11 +12,14 @@ import { NotificationManager } from './utils/notification-manager.js';
 import { LocationService } from './utils/location-service.js';
 import { createNewTrip } from './data/unified-data-model.js';
 
+// app.js - TripMaster Part 2: FIXED Tab Navigation & Core Functions
+// This part FIXES the tab switching bug and implements core functionality
+
 class TripMaster {
     constructor() {
-        console.log('🚀 TripMaster Part 1 initializing...');
+        console.log('🚀 TripMaster Part 2 initializing...');
         
-        // Core state - simplified for Part 1
+        // Core state
         this.state = {
             trip: {
                 location: '',
@@ -26,12 +29,16 @@ class TripMaster {
                 transportation: [],
                 accommodation: [],
                 items: {},
+                completedItems: [],
                 userProfile: null,
-                homeLocation: null
+                homeLocation: null,
+                weather: null,
+                itinerary: { days: [], progress: {} }
             },
             activeTab: 'overview',
             isLoading: false,
-            profileSetupComplete: false
+            profileSetupComplete: false,
+            hasUnsavedChanges: false
         };
 
         // Core services
@@ -47,10 +54,11 @@ class TripMaster {
         try {
             this.initializeUserProfile();
             this.initializeComponents();
-            this.bindBasicEvents();
+            this.bindEvents();
+            this.loadSavedState();
             this.showInitialTab();
             
-            console.log('✅ TripMaster Part 1 initialized successfully');
+            console.log('✅ TripMaster Part 2 initialized successfully');
         } catch (error) {
             console.error('❌ TripMaster initialization failed:', error);
         }
@@ -138,10 +146,13 @@ class TripMaster {
             this.updateNavigationWithProfile();
         }
         
+        // CRITICAL: Make itineraryDisplay available globally
+        window.itineraryDisplay = this.itineraryDisplay;
+        
         console.log('✅ All components initialized');
     }
 
-    // ===== NAVIGATION & TAB MANAGEMENT =====
+    // ===== FIXED TAB NAVIGATION & MANAGEMENT =====
     
     handleTabChange(tabId) {
         console.log('📋 Switching to tab:', tabId);
@@ -152,7 +163,8 @@ class TripMaster {
         // Update components based on active tab
         switch(tabId) {
             case 'setup':
-                // Trip setup handles its own profile check
+                // Force setup to be visible and working
+                this.ensureSetupTabVisible();
                 break;
                 
             case 'packing':
@@ -166,40 +178,29 @@ class TripMaster {
             case 'overview':
                 this.updateOverviewComponents();
                 break;
+                
+            case 'local-info':
+                this.updateLocalInfoComponents();
+                break;
         }
         
         this.updateNavigationProgress();
     }
 
+    // ===== FIXED TAB DISPLAY METHOD =====
+    
     showTab(tabId) {
         console.log(`🔄 Showing tab: ${tabId}`);
         
         // Hide all tab content sections
         document.querySelectorAll('.tab-content').forEach(tab => {
             tab.classList.remove('active');
-            tab.style.display = 'none';
         });
         
         // Show the target tab section
         const targetSection = document.getElementById(`${tabId}-section`);
         if (targetSection) {
             targetSection.classList.add('active');
-            targetSection.style.display = 'block';
-            
-            // CRITICAL: Force visibility for setup tab
-            if (tabId === 'setup') {
-                targetSection.style.visibility = 'visible';
-                targetSection.style.opacity = '1';
-                
-                // Also ensure the setup container is visible
-                const setupContainer = document.getElementById('trip-setup-section');
-                if (setupContainer) {
-                    setupContainer.style.display = 'block';
-                    setupContainer.style.visibility = 'visible';
-                }
-                
-                console.log(`✅ Setup tab forced visible`);
-            }
             
             console.log(`✅ Tab ${tabId} shown successfully`);
         } else {
@@ -207,13 +208,43 @@ class TripMaster {
         }
     }
 
+    // ===== CRITICAL FIX: ENSURE SETUP TAB VISIBLE =====
+    
+    ensureSetupTabVisible() {
+        console.log('🔧 Ensuring setup tab is properly visible...');
+        
+        const setupSection = document.getElementById('setup-section');
+        const tripSetupContainer = document.getElementById('trip-setup-section');
+        
+        if (setupSection) {
+            setupSection.classList.add('active');
+            setupSection.style.display = 'block';
+            setupSection.style.visibility = 'visible';
+            setupSection.style.opacity = '1';
+        }
+        
+        if (tripSetupContainer) {
+            tripSetupContainer.style.display = 'block';
+            tripSetupContainer.style.visibility = 'visible';
+            tripSetupContainer.style.opacity = '1';
+        }
+        
+        // If no profile, ensure profile setup shows
+        if (!this.userProfile) {
+            setTimeout(() => {
+                if (this.tripSetup && this.tripSetup.showProfileSetup) {
+                    this.tripSetup.showProfileSetup();
+                }
+            }, 100);
+        }
+        
+        console.log('✅ Setup tab forced visible');
+    }
+
     showInitialTab() {
-        // Always start with overview tab, then let user click Setup
+        // Always start with overview tab
         this.navigation.switchTab('overview');
-        
-        // Force proper tab display
         this.showTab('overview');
-        
         console.log(`📋 App initialized - click Setup tab to begin`);
     }
 
@@ -221,18 +252,218 @@ class TripMaster {
     
     updateNavigationWithProfile() {
         if (this.userProfile && this.navigation) {
-            // Update navigation component with profile
             this.navigation.setStorageManager(this.storage);
             this.navigation.updateUserProfile(this.userProfile);
             console.log(`👤 Navigation updated for ${this.userProfile.name}`);
         }
     }
 
-    // ===== COMPONENT UPDATE METHODS (Simplified for Part 1) =====
+    // ===== TRIP GENERATION (CORE IMPLEMENTATION) =====
     
+    async handleGenerateTrip(tripData) {
+        try {
+            console.log('🚀 Generating trip:', tripData);
+            this.setLoading(true);
+            
+            // Enhanced messaging with profile
+            if (this.userProfile) {
+                this.notification.show(`🧠 ${this.userProfile.name}, analyzing your trip requirements...`, 'info', 2000);
+            } else {
+                this.notification.show('🧠 Analyzing your trip requirements...', 'info', 2000);
+            }
+
+            // Update state with trip data
+            Object.assign(this.state.trip, tripData);
+            
+            // Store profile reference in trip
+            if (this.userProfile) {
+                this.state.trip.userProfile = this.userProfile;
+                this.state.trip.homeLocation = `${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}`;
+            }
+
+            // Get weather data if location provided
+            if (tripData.location) {
+                this.notification.show('🌤️ Fetching weather forecast...', 'info', 1500);
+                await this.weatherDisplay.fetchWeather(tripData.location, tripData.nights);
+                this.state.trip.weather = this.weatherDisplay.getWeatherData();
+            }
+
+            // Generate packing items
+            this.notification.show('🧠 Generating intelligent packing list...', 'info', 2000);
+            
+            const enhancedTripData = {
+                ...tripData,
+                weather: this.state.trip.weather,
+                userProfile: this.userProfile
+            };
+
+            const generatedItems = await this.listGenerator.generateItems(enhancedTripData);
+            this.state.trip.items = generatedItems;
+            this.state.trip.completedItems = [];
+
+            // Update all components
+            this.updateAllComponents();
+
+            // Save state
+            this.storage.saveTrip(this.state.trip);
+            this.state.hasUnsavedChanges = false;
+
+            // Success messaging
+            const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
+            this.notification.show(`🎯${userName}, smart trip plan generated!`, 'success', 4000);
+
+            // Switch to packing tab to show results
+            setTimeout(() => {
+                this.navigation.switchTab('packing');
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error generating trip:', error);
+            this.notification.show('Failed to generate trip plan. Please try again.', 'error');
+        } finally {
+            this.setLoading(false);
+        }
+    }
+
+    // ===== SAVE OPERATIONS =====
+    
+    async handleSave() {
+        const savedTrips = this.storage.getSavedTrips();
+        
+        const defaultName = this.generateTripName(this.state.trip);
+        let tripName = prompt('Enter a name for this trip:', defaultName);
+        
+        if (!tripName) return;
+
+        const tripToSave = { 
+            ...this.state.trip,
+            savedByUser: this.userProfile?.name || 'Anonymous',
+            savedFromLocation: this.userProfile?.homeLocation || null
+        };
+
+        const result = this.storage.saveTripToLibrary(tripName, tripToSave);
+        
+        if (result.success) {
+            const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
+            this.notification.show(`💾${userName}, trip "${tripName}" saved!`, 'success');
+        } else {
+            this.notification.show('Failed to save trip', 'error');
+        }
+    }
+
+    // ===== LOAD TRIP =====
+    
+    async handleLoadTrip() {
+        const savedTrips = this.storage.getSavedTrips();
+        const tripNames = Object.keys(savedTrips);
+
+        if (tripNames.length === 0) {
+            this.notification.show('No saved trips found', 'info');
+            return;
+        }
+
+        const tripOptions = tripNames.map((name, i) => {
+            const trip = savedTrips[name];
+            return `${i + 1}. ${name} (${trip.location || 'Unknown'})`;
+        }).join('\n');
+
+        const tripName = prompt(
+            `Choose a trip to load:\n${tripOptions}\n\nEnter trip name:`
+        );
+
+        if (tripName && savedTrips[tripName]) {
+            this.state.trip = { ...savedTrips[tripName] };
+            
+            // Update user profile if it exists in saved trip
+            if (this.state.trip.userProfile) {
+                this.userProfile = this.state.trip.userProfile;
+                this.updateNavigationWithProfile();
+            }
+            
+            this.tripSetup.loadTripData(this.state.trip);
+            this.updateAllComponents();
+
+            const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
+            this.notification.show(`📂${userName}, loaded trip "${tripName}"`, 'success');
+        }
+    }
+
+    // ===== RESET TRIP =====
+    
+    handleResetTrip() {
+        const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
+        const confirmMessage = `Reset current trip${userName}? This will clear all progress but keep your profile.`;
+        
+        if (confirm(confirmMessage)) {
+            this.state.trip = {
+                location: '',
+                nights: 5,
+                tripType: 'leisure',
+                startDate: '',
+                transportation: [],
+                accommodation: [],
+                items: {},
+                completedItems: [],
+                weather: null,
+                itinerary: { days: [], progress: {} },
+                // Preserve profile data
+                userProfile: this.userProfile,
+                homeLocation: this.userProfile ? `${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}` : null
+            };
+
+            this.tripSetup.reset();
+            this.storage.clearCurrentTrip();
+            this.updateAllComponents();
+            this.navigation.switchTab('setup');
+            
+            this.notification.show(`🔄${userName}, trip reset successfully! Your profile is preserved.`, 'info');
+        }
+    }
+
+    // ===== EXPORT FUNCTIONALITY =====
+    
+    handleExport() {
+        try {
+            const exportData = {
+                ...this.state.trip,
+                exportedAt: new Date().toISOString(),
+                exportedBy: this.userProfile?.name || 'Anonymous',
+                version: '2.1'
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const fileName = this.generateExportFileName();
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = fileName;
+            link.click();
+            
+            const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
+            this.notification.show(`📤${userName}, trip exported as ${fileName}`, 'success');
+            
+        } catch (error) {
+            console.error('Export failed:', error);
+            this.notification.show('Export failed. Please try again.', 'error');
+        }
+    }
+
+    // ===== COMPONENT UPDATE METHODS =====
+    
+    updateAllComponents() {
+        this.updatePackingComponents();
+        this.updateItineraryComponents();
+        this.updateProgressComponents();
+        this.updateOverviewComponents();
+        this.updateNavigationProgress();
+    }
+
     updatePackingComponents() {
         if (Object.keys(this.state.trip.items).length > 0) {
-            this.checklistDisplay.loadItems(this.state.trip.items, this.state.trip.completedItems || []);
+            this.checklistDisplay.loadItems(this.state.trip.items, this.state.trip.completedItems);
+            this.checklistDisplay.updateTripSummary(this.state.trip);
         }
         
         if (this.state.trip.weather) {
@@ -244,6 +475,11 @@ class TripMaster {
         if (this.state.trip.itinerary && this.state.trip.itinerary.days.length > 0) {
             this.itineraryDisplay.render(this.state.trip.itinerary);
         }
+    }
+
+    updateProgressComponents() {
+        const progress = this.calculateOverallProgress();
+        this.progressTracking.updateProgress(progress);
     }
 
     updateOverviewComponents() {
@@ -263,16 +499,32 @@ class TripMaster {
                         <div class="trip-summary" style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
                             <h3>📋 Current Trip</h3>
                             <p><strong>📍 Destination:</strong> ${this.state.trip.location}</p>
+                            ${this.userProfile ? `<p><strong>🏠 From:</strong> ${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}</p>` : ''}
                             <p><strong>🌙 Duration:</strong> ${this.state.trip.nights} nights</p>
                             <p><strong>🎯 Type:</strong> ${this.state.trip.tripType}</p>
                         </div>
                     ` : `
                         <div class="getting-started" style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
                             <h3>🚀 Let's Start Planning!</h3>
-                            <p>Click "Setup" to begin creating your intelligent packing list</p>
+                            <p>Click "Trip Setup" to begin creating your intelligent packing list</p>
                             ${!this.userProfile ? '<p>💡 Set up your profile for personalized travel intelligence!</p>' : ''}
                         </div>
                     `}
+                </div>
+            `;
+        }
+    }
+
+    updateLocalInfoComponents() {
+        const localInfoSection = document.getElementById('local-info-section');
+        if (localInfoSection) {
+            localInfoSection.innerHTML = `
+                <div class="container">
+                    <div class="content-placeholder">
+                        <h2>🗺️ Local Information</h2>
+                        <p>Language phrases, customs, emergency info</p>
+                        <div class="coming-soon">Coming in Phase 3</div>
+                    </div>
                 </div>
             `;
         }
@@ -290,135 +542,1118 @@ class TripMaster {
         });
     }
 
-    // ===== BASIC EVENT HANDLING =====
-    
-    bindBasicEvents() {
-        // Basic keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                e.preventDefault();
-                this.handleSave();
-            }
-        });
-
-        // Auto-save on changes (simple version)
-        let autoSaveTimeout;
-        document.addEventListener('input', (e) => {
-            if (e.target.closest('.trip-setup, .checklist-display')) {
-                clearTimeout(autoSaveTimeout);
-                autoSaveTimeout = setTimeout(() => {
-                    this.storage.saveTrip(this.state.trip);
-                }, 2000);
-            }
-        });
-
-        console.log('✅ Basic events bound');
-    }
-
-    // ===== PLACEHOLDER METHODS (Will be implemented in Parts 2 & 3) =====
-    
-    handleGenerateTrip(tripData) {
-        console.log('🚀 Trip generation requested:', tripData);
-        // Will be implemented in Part 2
-        alert('Trip generation will be implemented in Part 2');
-    }
-
-    handleLoadTrip() {
-        console.log('📂 Load trip requested');
-        // Will be implemented in Part 2
-        alert('Load trip will be implemented in Part 2');
-    }
-
-    handleResetTrip() {
-        console.log('🔄 Reset trip requested');
-        // Will be implemented in Part 2
-        alert('Reset trip will be implemented in Part 2');
-    }
-
-    handleSave() {
-        console.log('💾 Save requested');
-        // Will be implemented in Part 3
-        alert('Save functionality will be implemented in Part 3');
-    }
-
-    handleExport() {
-        console.log('📤 Export requested');
-        // Will be implemented in Part 3
-        alert('Export functionality will be implemented in Part 3');
-    }
-
-    // Placeholder event handlers
-    handleItemToggle(category, item) { console.log('Item toggle:', category, item); }
-    handleItemAdd(category, item, quantity) { console.log('Item add:', category, item, quantity); }
-    handleNoteUpdate(category, item, note) { console.log('Note update:', category, item, note); }
-    handleStopToggle(stopId, completed) { console.log('Stop toggle:', stopId, completed); }
-    handleItineraryNoteUpdate(stopId, note) { console.log('Itinerary note:', stopId, note); }
-    handleActivitySync(stopId, activities) { console.log('Activity sync:', stopId, activities); }
-
     // ===== PROGRESS CALCULATION =====
     
     calculateSetupProgress() {
         const trip = this.state.trip;
         let completed = 0;
-        let total = 5;
+        let total = 6;
         
         if (this.userProfile) completed++;
         if (trip.location) completed++;
         if (trip.startDate) completed++;
         if (trip.nights > 0) completed++;
         if (trip.tripType) completed++;
+        if (trip.transportation.length > 0 || trip.accommodation.length > 0) completed++;
         
         return Math.round((completed / total) * 100);
     }
 
     calculatePackingProgress() {
         const totalItems = Object.values(this.state.trip.items).reduce((sum, cat) => sum + Object.keys(cat).length, 0);
-        const completedItems = (this.state.trip.completedItems || []).length;
+        const completedItems = this.state.trip.completedItems.length;
         
         if (totalItems === 0) return 0;
         return Math.round((completedItems / totalItems) * 100);
     }
+
+    calculateOverallProgress() {
+        const setupProgress = this.calculateSetupProgress();
+        const packingProgress = this.calculatePackingProgress();
+        
+        return Math.round((setupProgress * 0.4) + (packingProgress * 0.6));
+    }
+
+    // ===== ITEM HANDLING METHODS =====
+    
+    handleItemToggle(category, itemKey) {
+        const itemId = `${category}.${itemKey}`;
+        const isCompleted = this.state.trip.completedItems.includes(itemId);
+        
+        if (isCompleted) {
+            this.state.trip.completedItems = this.state.trip.completedItems.filter(id => id !== itemId);
+        } else {
+            this.state.trip.completedItems.push(itemId);
+        }
+        
+        this.storage.saveTrip(this.state.trip);
+        this.updateProgressComponents();
+        this.updateNavigationProgress();
+        this.state.hasUnsavedChanges = false;
+    }
+
+    handleItemAdd(category, item, quantity = 1) {
+        if (!this.state.trip.items[category]) {
+            this.state.trip.items[category] = {};
+        }
+        
+        this.state.trip.items[category][item] = { quantity };
+        this.storage.saveTrip(this.state.trip);
+        this.updatePackingComponents();
+        this.state.hasUnsavedChanges = false;
+        
+        const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
+        this.notification.show(`➕${userName}, added "${item}" to ${category}`, 'success');
+    }
+
+    handleNoteUpdate(category, itemKey, note) {
+        if (!this.state.trip.items[category] || !this.state.trip.items[category][itemKey]) return;
+        
+        this.state.trip.items[category][itemKey].note = note;
+        this.storage.saveTrip(this.state.trip);
+        this.state.hasUnsavedChanges = false;
+        
+        this.notification.show('📝 Note updated', 'info');
+    }
+
+    // ===== ITINERARY HANDLING =====
+    
+    handleStopToggle(stopId, completed) {
+        if (!this.state.trip.itinerary.progress.completedStops) {
+            this.state.trip.itinerary.progress.completedStops = [];
+        }
+        
+        const isCompleted = this.state.trip.itinerary.progress.completedStops.includes(stopId);
+        
+        if (completed && !isCompleted) {
+            this.state.trip.itinerary.progress.completedStops.push(stopId);
+        } else if (!completed && isCompleted) {
+            this.state.trip.itinerary.progress.completedStops = 
+                this.state.trip.itinerary.progress.completedStops.filter(id => id !== stopId);
+        }
+        
+        this.storage.saveTrip(this.state.trip);
+        this.updateProgressComponents();
+        this.updateNavigationProgress();
+    }
+
+    handleItineraryNoteUpdate(stopId, note) {
+        if (!this.state.trip.itinerary.progress.personalNotes) {
+            this.state.trip.itinerary.progress.personalNotes = {};
+        }
+        
+        this.state.trip.itinerary.progress.personalNotes[stopId] = note;
+        this.storage.saveTrip(this.state.trip);
+        this.state.hasUnsavedChanges = false;
+        
+        this.notification.show('📝 Itinerary note updated', 'info');
+    }
+
+    handleActivitySync(stopId, activities) {
+        console.log('Activity sync requested:', stopId, activities);
+        this.notification.show('Activity sync functionality coming in Part 3', 'info');
+    }
+
+    // ===== IMPORT ITINERARY =====
+    
+    async handleImportItinerary(itineraryData) {
+        try {
+            if (!itineraryData.days || !Array.isArray(itineraryData.days)) {
+                throw new Error('Invalid itinerary format - missing days array');
+            }
+            
+            this.state.trip.itinerary = {
+                days: itineraryData.days,
+                progress: this.state.trip.itinerary.progress || {
+                    completedStops: [],
+                    personalNotes: {}
+                }
+            };
+            
+            this.updateItineraryComponents();
+            this.updateNavigationProgress();
+            
+            this.storage.saveTrip(this.state.trip);
+            
+            const totalStops = itineraryData.days.reduce((sum, day) => sum + day.stops.length, 0);
+            
+            if (this.userProfile) {
+                this.notification.show(`📅 ${this.userProfile.name}, imported itinerary with ${itineraryData.days.length} days and ${totalStops} stops!`, 'success');
+            } else {
+                this.notification.show(`📅 Imported itinerary with ${itineraryData.days.length} days and ${totalStops} stops!`, 'success');
+            }
+            
+            setTimeout(() => {
+                this.navigation.switchTab('itinerary');
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Failed to import itinerary:', error);
+            this.notification.show('Failed to import itinerary. Please check the file format.', 'error');
+        }
+    }
+
+    // ===== UTILITY METHODS =====
+    
+    generateTripName(trip) {
+        const parts = [];
+        
+        if (this.userProfile && trip.location) {
+            parts.push(`${this.userProfile.homeLocation.city} → ${trip.location}`);
+        } else if (trip.location) {
+            parts.push(trip.location);
+        }
+        
+        if (trip.tripType && trip.tripType !== 'leisure') parts.push(trip.tripType);
+        
+        const date = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        parts.push(date);
+        
+        return parts.join(' - ');
+    }
+
+    generateExportFileName() {
+        const parts = ['tripmaster'];
+        
+        if (this.userProfile && this.state.trip.location) {
+            const originCity = this.userProfile.homeLocation.city.replace(/\s+/g, '-').toLowerCase();
+            const destCity = this.state.trip.location.split(',')[0].replace(/\s+/g, '-').toLowerCase();
+            parts.push(`${originCity}-to-${destCity}`);
+        } else if (this.state.trip.location) {
+            parts.push(this.state.trip.location.split(',')[0].replace(/\s+/g, '-').toLowerCase());
+        }
+        
+        const date = new Date().toISOString().split('T')[0];
+        parts.push(date);
+        
+        return parts.join('-') + '.json';
+    }
+
+    setLoading(isLoading) {
+        this.state.isLoading = isLoading;
+        const overlay = document.getElementById('loading-overlay');
+        if (overlay) {
+            overlay.classList.toggle('hidden', !isLoading);
+        }
+    }
+
+    // ===== EVENT BINDING =====
+    
+    bindEvents() {
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                this.handleSave();
+            }
+            
+            if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+                e.preventDefault();
+                this.handleExport();
+            }
+        });
+
+        // Auto-save on changes
+        let autoSaveTimeout;
+        document.addEventListener('input', (e) => {
+            if (e.target.closest('.trip-setup, .checklist-display')) {
+                this.state.hasUnsavedChanges = true;
+                clearTimeout(autoSaveTimeout);
+                autoSaveTimeout = setTimeout(() => {
+                    this.storage.saveTrip(this.state.trip);
+                    this.state.hasUnsavedChanges = false;
+                }, 2000);
+            }
+        });
+
+        console.log('✅ Events bound');
+    }
+
+    // ===== LOAD SAVED STATE =====
+    
+    async loadSavedState() {
+        if (this.state.profileSetupComplete) {
+            const savedTrip = this.storage.getCurrentTrip();
+            
+            if (savedTrip && savedTrip.location) {
+                this.state.trip = { ...savedTrip };
+                
+                if (!this.state.trip.userProfile && this.userProfile) {
+                    this.state.trip.userProfile = this.userProfile;
+                    this.state.trip.homeLocation = `${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}`;
+                }
+                
+                this.tripSetup.loadTripData(this.state.trip);
+                this.updateAllComponents();
+                
+                console.log(`👋 Welcome back! Restored your trip to ${this.state.trip.location}`);
+                
+                setTimeout(() => {
+                    if (this.userProfile) {
+                        this.notification.show(`👋 Welcome back ${this.userProfile.name}! Restored your trip to ${this.state.trip.location}`, 'info', 3000);
+                    }
+                }, 1000);
+            }
+        }
+    }
 }
 
-// ===== INITIALIZATION =====
+// ===== ENHANCED TRIP GENERATION WITH LOCATION INTELLIGENCE =====
 
-document.addEventListener('DOMContentLoaded', () => {
+async handleGenerateTrip(tripData) {
+    try {
+        console.log('🚀 Generating enhanced trip:', tripData);
+        this.setLoading(true);
+        
+        // Enhanced messaging with profile
+        if (this.userProfile) {
+            this.notification.show(`🧠 ${this.userProfile.name}, analyzing your trip requirements...`, 'info', 2000);
+            
+            if (tripData.location) {
+                const destCity = tripData.location.split(',')[0]?.trim();
+                const homeCity = this.userProfile.homeLocation.city;
+                
+                setTimeout(() => {
+                    this.notification.show(`🌍 Comparing ${destCity} vs ${homeCity} for intelligent packing...`, 'info', 2500);
+                }, 1000);
+            }
+        } else {
+            this.notification.show('🧠 Analyzing your trip requirements...', 'info', 2000);
+        }
+
+        // Enhanced transport/accommodation messaging
+        setTimeout(() => {
+            if (tripData.transportation && tripData.transportation.length > 0) {
+                const transportMessages = {
+                    'plane': '✈️ Adding flight-specific items and TSA compliance...',
+                    'car': '🚗 Including road trip essentials and emergency kit...',
+                    'train': '🚊 Adding train comfort items...',
+                    'ferry': '⛴️ Including ferry travel preparations...',
+                    'bus': '🚌 Adding bus travel comfort items...'
+                };
+                
+                const selectedTransports = Array.isArray(tripData.transportation) ? 
+                    tripData.transportation : [tripData.transportation];
+                
+                selectedTransports.forEach((transport, index) => {
+                    setTimeout(() => {
+                        this.notification.show(transportMessages[transport] || 'Adding transportation items...', 'info', 2000);
+                    }, index * 500);
+                });
+            }
+        }, 1500);
+
+        setTimeout(() => {
+            if (tripData.accommodation && tripData.accommodation.length > 0) {
+                const accommodationMessages = {
+                    'hotel': '🏨 Optimizing for hotel stay (toiletries provided)...',
+                    'airbnb': '🏠 Adding vacation rental essentials (bring everything)...',
+                    'camping': '⛺ Including complete camping setup...',
+                    'hostel': '🏨 Adding hostel security and shared facility items...',
+                    'family': '👨‍👩‍👧‍👦 Including courtesy items for family stay...'
+                };
+                
+                const selectedAccommodations = Array.isArray(tripData.accommodation) ? 
+                    tripData.accommodation : [tripData.accommodation];
+                
+                selectedAccommodations.forEach((accommodation, index) => {
+                    setTimeout(() => {
+                        this.notification.show(accommodationMessages[accommodation] || 'Adding accommodation items...', 'info', 2000);
+                    }, index * 500);
+                });
+            }
+        }, 2500);
+
+        // Update state with trip data
+        Object.assign(this.state.trip, tripData);
+        
+        // Store profile reference in trip
+        if (this.userProfile) {
+            this.state.trip.userProfile = this.userProfile;
+            this.state.trip.homeLocation = `${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}`;
+        }
+
+        // ===== LOCATION INTELLIGENCE WITH ORIGIN/DESTINATION =====
+        
+        if (this.userProfile && tripData.location) {
+            try {
+                this.notification.show('🌍 Getting location intelligence...', 'info', 1500);
+                
+                const originLocation = `${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}`;
+                
+                const locationResult = await this.locationService.enrichTripLocations(
+                    originLocation,
+                    tripData.location,
+                    tripData.nights,
+                    new Date(tripData.startDate)
+                );
+
+                if (locationResult.success) {
+                    // Store comprehensive location data
+                    this.state.trip.travelIntelligence = locationResult.travelIntelligence;
+                    this.state.trip.quickReference = {
+                        emergency: { local: locationResult.destination.emergency },
+                        language: { essentialPhrases: locationResult.destination.essentialPhrases },
+                        customs: locationResult.destination.localCustoms
+                    };
+                    
+                    // Store origin/destination data for enhanced item generation
+                    this.state.trip.originDestinationIntelligence = {
+                        origin: locationResult.origin,
+                        destination: locationResult.destination
+                    };
+                    
+                    // Show intelligent insights with delays
+                    setTimeout(() => {
+                        this.showTravelIntelligenceInsights(locationResult.travelIntelligence, this.userProfile.name);
+                    }, 3500);
+                    
+                } else {
+                    console.warn('Location intelligence failed:', locationResult.error);
+                    this.notification.show('⚠️ Location intelligence unavailable - continuing with basic generation', 'warning', 2000);
+                }
+                
+            } catch (locationError) {
+                console.warn('Location intelligence failed:', locationError);
+                this.notification.show('⚠️ Location intelligence unavailable - continuing with basic generation', 'warning', 2000);
+            }
+        } else if (!this.userProfile) {
+            this.notification.show('💡 Set up your profile for origin/destination intelligence!', 'info', 2000);
+        }
+
+        // ===== WEATHER FETCHING WITH COMPARISON =====
+        
+        if (tripData.location) {
+            setTimeout(() => {
+                this.notification.show('🌤️ Fetching weather forecast...', 'info', 1500);
+            }, 4000);
+            
+            await this.weatherDisplay.fetchWeather(tripData.location, tripData.nights);
+            this.state.trip.weather = this.weatherDisplay.getWeatherData();
+            
+            // Weather comparison with home location if profile exists
+            if (this.userProfile && this.state.trip.weather && this.state.trip.weather.length > 0) {
+                const avgDestTemp = Math.round(
+                    this.state.trip.weather.reduce((sum, day) => sum + day.temp, 0) / this.state.trip.weather.length
+                );
+                
+                setTimeout(() => {
+                    this.notification.show(
+                        `🌡️ ${this.userProfile.name}, average temperature in ${tripData.location.split(',')[0]} will be ${avgDestTemp}°C`, 
+                        'info', 
+                        3000
+                    );
+                }, 5500);
+            }
+        }
+
+        // ===== ENHANCED ITEM GENERATION =====
+        
+        setTimeout(() => {
+            this.notification.show('🧠 Generating intelligent packing list...', 'info', 2000);
+        }, 6500);
+
+        // Enhanced trip data for generation
+        const enhancedTripData = {
+            ...tripData,
+            weather: this.state.trip.weather,
+            travelIntelligence: this.state.trip.travelIntelligence,
+            userProfile: this.userProfile,
+            originDestinationData: this.state.trip.originDestinationIntelligence
+        };
+
+        const generatedItems = await this.listGenerator.generateItems(enhancedTripData);
+        this.state.trip.items = generatedItems;
+        this.state.trip.completedItems = [];
+
+        // ===== UPDATE ALL COMPONENTS =====
+        
+        this.updateAllComponents();
+
+        // ===== SAVE STATE =====
+        
+        this.storage.saveTrip(this.state.trip);
+        this.state.hasUnsavedChanges = false;
+
+        // ===== SUCCESS MESSAGING =====
+        
+        setTimeout(() => {
+            const contextInfo = [];
+            if (tripData.transportation && tripData.transportation.length > 0) {
+                const transports = Array.isArray(tripData.transportation) ? tripData.transportation : [tripData.transportation];
+                contextInfo.push(...transports);
+            }
+            if (tripData.accommodation && tripData.accommodation.length > 0) {
+                const accommodations = Array.isArray(tripData.accommodation) ? tripData.accommodation : [tripData.accommodation];
+                contextInfo.push(...accommodations);
+            }
+            
+            const contextText = contextInfo.length > 0 ? ` for ${contextInfo.join(' + ')}` : '';
+            const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
+            
+            this.notification.show(`🎯${userName}, smart trip plan generated${contextText}!`, 'success', 4000);
+        }, 8000);
+
+        // ===== ENHANCED INSIGHTS =====
+        
+        setTimeout(() => {
+            this.showGenerationInsights(tripData, generatedItems);
+        }, 9000);
+
+        // ===== WORKFLOW GUIDANCE =====
+        
+        setTimeout(() => {
+            if (this.userProfile) {
+                this.notification.show(`💡 ${this.userProfile.name}, import your itinerary next for activity-specific items!`, 'info', 4000);
+            } else {
+                this.notification.show('💡 Import your itinerary next for activity-specific items!', 'info', 4000);
+            }
+        }, 10000);
+
+        // Switch to packing tab to show results
+        setTimeout(() => {
+            this.navigation.switchTab('packing');
+        }, 11000);
+
+    } catch (error) {
+        console.error('Error generating trip:', error);
+        this.notification.show('Failed to generate trip plan. Please try again.', 'error');
+    } finally {
+        this.setLoading(false);
+    }
+}
+
+// ===== TRAVEL INTELLIGENCE INSIGHTS =====
+
+showTravelIntelligenceInsights(intelligence, userName) {
+    const insights = [];
+    
+    // Electrical compatibility insights
+    if (intelligence.electrical) {
+        if (intelligence.electrical.needsAdapter) {
+            insights.push(`🔌 ${userName}, you'll need a ${intelligence.electrical.adapterType} adapter`);
+        } else {
+            insights.push(`✅ ${userName}, your ${intelligence.electrical.originPlug} plugs will work - no adapter needed!`);
+        }
+    }
+    
+    // Currency insights
+    if (intelligence.currency) {
+        if (intelligence.currency.needsExchange) {
+            insights.push(`💱 ${userName}, you'll need to exchange ${intelligence.currency.originCurrency} to ${intelligence.currency.destinationCurrency}`);
+        } else {
+            insights.push(`💰 ${userName}, same currency (${intelligence.currency.originCurrency}) - no exchange needed!`);
+        }
+    }
+    
+    // Language insights
+    if (intelligence.language) {
+        if (intelligence.language.sameLanguage) {
+            insights.push(`🗣️ ${userName}, same language - easy communication!`);
+        } else {
+            insights.push(`🌍 ${userName}, different language (${intelligence.language.destinationLanguage}) - essential phrases included!`);
+        }
+    }
+    
+    // Timezone insights
+    if (intelligence.timezone && !intelligence.timezone.sameTimezone) {
+        insights.push(`⏰ ${userName}, different timezone (${intelligence.timezone.destinationTimezone}) - check times carefully!`);
+    }
+    
+    // Weather comparison insights
+    if (intelligence.weather && intelligence.weather.hasComparison) {
+        insights.push(`🌤️ ${userName}, ${intelligence.weather.recommendation}`);
+    }
+    
+    // Show insights with staggered timing
+    insights.forEach((insight, index) => {
+        setTimeout(() => {
+            this.notification.show(insight, 'info', 4000);
+        }, 1000 + (index * 1800));
+    });
+}
+
+// ===== ENHANCED GENERATION INSIGHTS =====
+
+showGenerationInsights(tripData, items) {
+    const insights = [];
+    const categoryCount = Object.keys(items).length;
+    let totalItems = 0;
+    
+    for (const categoryItems of Object.values(items)) {
+        totalItems += Object.keys(categoryItems).length;
+    }
+
+    // Profile-aware insights
+    if (this.userProfile) {
+        insights.push(`📊 ${this.userProfile.name}, generated ${totalItems} items across ${categoryCount} categories`);
+    } else {
+        insights.push(`📊 Generated ${totalItems} items across ${categoryCount} categories`);
+    }
+
+    // Transport-specific insights
+    const transportArray = Array.isArray(tripData.transportation) ? tripData.transportation : [tripData.transportation].filter(Boolean);
+    
+    if (transportArray.includes('plane')) {
+        if (tripData.transportationOptions?.includes('international')) {
+            insights.push('🌍 International flight requirements added');
+        }
+        if (tripData.transportationOptions?.includes('carryonly')) {
+            insights.push('🧳 Carry-on restrictions applied');
+        }
+    }
+
+    // Accommodation-specific insights
+    const accommodationArray = Array.isArray(tripData.accommodation) ? tripData.accommodation : [tripData.accommodation].filter(Boolean);
+    
+    if (accommodationArray.includes('hotel')) {
+        insights.push('🏨 Hotel amenities considered - basic toiletries excluded');
+    } else if (accommodationArray.includes('camping')) {
+        insights.push('⛺ Complete camping self-sufficiency included');
+    }
+
+    // Travel intelligence insights
+    if (this.state.trip.travelIntelligence) {
+        if (this.state.trip.travelIntelligence.electrical?.needsAdapter) {
+            insights.push('🔌 Electrical adapter requirement detected and added');
+        }
+        if (this.state.trip.travelIntelligence.currency?.needsExchange) {
+            insights.push('💱 Currency exchange planning included');
+        }
+    }
+
+    // Multi-modal complexity insights
+    const complexityScore = transportArray.length + accommodationArray.length;
+    if (complexityScore > 2) {
+        insights.push(`🚀 Multi-modal trip (${complexityScore} modes) - coordination items added`);
+    }
+
+    // Show insights with timing
+    insights.forEach((insight, index) => {
+        setTimeout(() => {
+            this.notification.show(insight, 'info', 2500);
+        }, 1000 + (index * 1500));
+    });
+}
+
+// ===== ENHANCED ACTIVITY SYNC =====
+
+handleActivitySync(stopId, activities) {
+    let addedItems = 0;
+    
+    const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
+    
+    // Analyze activities and add relevant packing items
+    activities.forEach(activity => {
+        const activityLower = activity.toLowerCase();
+        
+        // Business activities
+        if (activityLower.includes('session') || activityLower.includes('meeting') || 
+            activityLower.includes('presentation') || activityLower.includes('showcase')) {
+            this.addPackingItemsFromActivity(['business_items.business_cards', 'business_items.notebook', 'clothes.dress_shirt']);
+            addedItems += 3;
+        }
+        
+        // Dining activities
+        if (activityLower.includes('dinner') || activityLower.includes('restaurant') || 
+            activityLower.includes('dining')) {
+            this.addPackingItemsFromActivity(['clothes.nice_shoes', 'clothes.dress_pants']);
+            addedItems += 2;
+        }
+        
+        // Walking/touring activities
+        if (activityLower.includes('walking') || activityLower.includes('tour') || 
+            activityLower.includes('exploration') || activityLower.includes('stroll')) {
+            this.addPackingItemsFromActivity(['clothes.comfortable_shoes', 'travel_essentials.water_bottle']);
+            addedItems += 2;
+        }
+        
+        // Cultural activities
+        if (activityLower.includes('museum') || activityLower.includes('cultural') || 
+            activityLower.includes('historic')) {
+            this.addPackingItemsFromActivity(['electronics.camera', 'travel_essentials.guidebook']);
+            addedItems += 2;
+        }
+        
+        // Beach/water activities
+        if (activityLower.includes('beach') || activityLower.includes('swimming') || 
+            activityLower.includes('water')) {
+            this.addPackingItemsFromActivity(['beach_gear.swimwear', 'beach_gear.beach_towel', 'beach_gear.sunscreen']);
+            addedItems += 3;
+        }
+        
+        // Hiking/outdoor activities
+        if (activityLower.includes('hiking') || activityLower.includes('outdoor') || 
+            activityLower.includes('nature')) {
+            this.addPackingItemsFromActivity(['hiking_gear.hiking_boots', 'hiking_gear.backpack', 'hiking_gear.water_bottle']);
+            addedItems += 3;
+        }
+        
+        // Photography activities
+        if (activityLower.includes('photo') || activityLower.includes('picture') || 
+            activityLower.includes('scenic')) {
+            this.addPackingItemsFromActivity(['photography_gear.camera', 'photography_gear.extra_batteries', 'photography_gear.memory_cards']);
+            addedItems += 3;
+        }
+    });
+    
+    if (addedItems > 0) {
+        this.updatePackingComponents();
+        this.storage.saveTrip(this.state.trip);
+        this.notification.show(`🧳${userName}, added ${addedItems} items to packing list based on activities!`, 'success');
+    } else {
+        this.notification.show('No new packing items needed for these activities', 'info');
+    }
+}
+
+// Helper method for activity sync
+addPackingItemsFromActivity(itemPaths) {
+    itemPaths.forEach(path => {
+        const [category, itemKey] = path.split('.');
+        if (!this.state.trip.items[category]) {
+            this.state.trip.items[category] = {};
+        }
+        if (!this.state.trip.items[category][itemKey]) {
+            this.state.trip.items[category][itemKey] = { 
+                quantity: 1, 
+                addedFromActivity: true,
+                note: 'Added from itinerary activity'
+            };
+        }
+    });
+}
+
+// ===== ENHANCED FILE HANDLING =====
+
+async handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+        this.setLoading(true);
+        this.notification.show('📁 Processing file...', 'info', 1500);
+        
+        const text = await file.text();
+        const itineraryData = JSON.parse(text);
+        
+        await this.handleImportItinerary(itineraryData);
+        
+    } catch (error) {
+        console.error('File upload failed:', error);
+        this.notification.show('Failed to load itinerary file. Please check the format.', 'error');
+    } finally {
+        this.setLoading(false);
+    }
+}
+
+// ===== SAMPLE ITINERARY LOADER =====
+
+async loadSampleItinerary() {
+    try {
+        if (this.userProfile) {
+            this.notification.show(`📅 ${this.userProfile.name}, loading sample Athens itinerary...`, 'info', 2000);
+        } else {
+            this.notification.show('📅 Loading sample Athens itinerary...', 'info', 2000);
+        }
+        
+        const response = await fetch('./itinerary-data.json');
+        if (!response.ok) {
+            throw new Error('Could not load sample itinerary');
+        }
+        
+        const itineraryData = await response.json();
+        
+        await this.handleImportItinerary(itineraryData);
+        
+    } catch (error) {
+        console.error('Failed to load sample itinerary:', error);
+        this.notification.show('Sample itinerary not available. Please import your own.', 'error');
+    }
+}
+
+// ===== ENHANCED ERROR HANDLING & RECOVERY =====
+
+handleStorageError(error) {
+    console.error('Storage error:', error);
+    
+    if (error.name === 'QuotaExceededError') {
+        this.notification.show('Storage full - cleaning up old data...', 'warning', 3000);
+        
+        // Try to free up space
+        try {
+            this.storage.cleanupOldData(30); // Remove trips older than 30 days
+            this.storage.clearCache();
+            this.notification.show('Storage cleaned up successfully', 'success');
+        } catch (cleanupError) {
+            console.error('Cleanup failed:', cleanupError);
+            this.notification.show('Storage cleanup failed - please refresh the page', 'error');
+        }
+    } else {
+        this.notification.show('Storage error occurred - some features may not work properly', 'error');
+    }
+}
+
+emergencyReset() {
+    const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
+    
+    if (confirm(`Emergency reset${userName}? This will clear ALL data but attempt to preserve your profile.`)) {
+        try {
+            // Try to preserve profile
+            const profileBackup = this.userProfile;
+            
+            // Clear all storage
+            ['tripmaster-current-trip', 'tripmaster-saved-trips', 'tripmaster-cache', 'tripmaster-itinerary-progress'].forEach(key => {
+                try {
+                    localStorage.removeItem(key);
+                } catch (e) {
+                    console.warn(`Failed to clear ${key}:`, e);
+                }
+            });
+            
+            // Restore profile if it existed
+            if (profileBackup) {
+                this.storage.saveUserProfile(profileBackup);
+                this.userProfile = profileBackup;
+            }
+            
+            // Reset state
+            this.state.trip = {
+                location: '',
+                nights: 5,
+                tripType: 'leisure',
+                startDate: '',
+                transportation: [],
+                accommodation: [],
+                items: {},
+                completedItems: [],
+                userProfile: this.userProfile,
+                homeLocation: this.userProfile ? `${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}` : null
+            };
+            
+            // Update components
+            this.updateAllComponents();
+            this.navigation.switchTab('overview');
+            
+            this.notification.show(`🔄 Emergency reset complete${userName}`, 'success');
+            
+        } catch (resetError) {
+            console.error('Emergency reset failed:', resetError);
+            this.notification.show('Emergency reset failed - please refresh the page', 'error');
+        }
+    }
+}
+
+// ===== ADVANCED EVENT BINDING =====
+
+bindAdvancedEvents() {
+    // Advanced keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Ctrl+Shift+R for emergency reset
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
+            e.preventDefault();
+            this.emergencyReset();
+        }
+        
+        // Ctrl+I for import itinerary
+        if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+            e.preventDefault();
+            document.getElementById('itinerary-file-import')?.click();
+        }
+        
+        // Tab navigation with Ctrl+1-5
+        if ((e.ctrlKey || e.metaKey) && ['1', '2', '3', '4', '5'].includes(e.key)) {
+            e.preventDefault();
+            const tabMap = {
+                '1': 'overview',
+                '2': 'setup',
+                '3': 'itinerary',
+                '4': 'packing',
+                '5': 'local-info'
+            };
+            this.navigation.switchTab(tabMap[e.key]);
+        }
+    });
+
+    // Drag and drop for files
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        document.addEventListener(eventName, this.preventDefaults, false);
+    });
+
+    document.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.name.endsWith('.json')) {
+                this.handleFileUpload({ target: { files: [file] } });
+            } else {
+                this.notification.show('Please drop a JSON file', 'error');
+            }
+        }
+    }, false);
+
+    // Enhanced auto-save with conflict detection
+    let autoSaveTimeout;
+    let lastSaveTime = Date.now();
+    
+    const smartAutoSave = () => {
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(() => {
+            if (this.state.hasUnsavedChanges) {
+                try {
+                    // Check for conflicts (another tab might have saved)
+                    const currentSaved = this.storage.getCurrentTrip();
+                    if (currentSaved && currentSaved.meta && currentSaved.meta.lastModified) {
+                        const savedTime = new Date(currentSaved.meta.lastModified).getTime();
+                        if (savedTime > lastSaveTime) {
+                            // Conflict detected
+                            if (confirm('Trip was modified in another tab. Overwrite with current changes?')) {
+                                this.storage.saveTrip(this.state.trip);
+                                lastSaveTime = Date.now();
+                            } else {
+                                // Reload from storage
+                                this.state.trip = { ...currentSaved };
+                                this.updateAllComponents();
+                            }
+                        } else {
+                            this.storage.saveTrip(this.state.trip);
+                            lastSaveTime = Date.now();
+                        }
+                    } else {
+                        this.storage.saveTrip(this.state.trip);
+                        lastSaveTime = Date.now();
+                    }
+                    
+                    this.state.hasUnsavedChanges = false;
+                    
+                    const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
+                    console.log(`💾 Auto-saved${userName} at ${new Date().toLocaleTimeString()}`);
+                    
+                } catch (error) {
+                    this.handleStorageError(error);
+                }
+            }
+        }, 3000);
+    };
+
+    // Enhanced change detection
+    ['input', 'change', 'click'].forEach(eventType => {
+        document.addEventListener(eventType, (e) => {
+            if (e.target.closest('.trip-setup, .checklist-display, .itinerary-display')) {
+                this.state.hasUnsavedChanges = true;
+                smartAutoSave();
+            }
+        });
+    });
+
+    console.log('✅ Advanced events bound');
+}
+
+preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+// ===== PERFORMANCE MONITORING =====
+
+monitorPerformance() {
+    // Monitor component render times
+    const originalRender = this.updateAllComponents;
+    this.updateAllComponents = () => {
+        const start = performance.now();
+        originalRender.call(this);
+        const end = performance.now();
+        
+        if (end - start > 100) {
+            console.warn(`Slow component update: ${end - start}ms`);
+        }
+    };
+    
+    // Monitor storage operations
+    const originalSave = this.storage.saveTrip;
+    this.storage.saveTrip = (tripData) => {
+        const start = performance.now();
+        const result = originalSave.call(this.storage, tripData);
+        const end = performance.now();
+        
+        if (end - start > 50) {
+            console.warn(`Slow storage save: ${end - start}ms`);
+        }
+        
+        return result;
+    };
+}
+
+// ===== COMPLETE INITIALIZATION =====
+
+async initialize() {
+    try {
+        console.log('🚀 TripMaster final initialization...');
+        
+        // Bind advanced events
+        this.bindAdvancedEvents();
+        
+        // Start performance monitoring
+        this.monitorPerformance();
+        
+        // Make global methods available
+        window.tripMaster = this;
+        window.loadSampleItinerary = () => this.loadSampleItinerary();
+        window.handleImportItinerary = (data) => this.handleImportItinerary(data);
+        
+        // Load any existing state
+        await this.loadSavedState();
+        
+        console.log('✅ TripMaster fully initialized and ready!');
+        
+        // Show welcome message if profile exists
+        if (this.userProfile) {
+            setTimeout(() => {
+                this.notification.show(`🎉 Welcome back ${this.userProfile.name}! TripMaster is ready.`, 'success', 3000);
+            }, 1000);
+        }
+        
+    } catch (error) {
+        console.error('❌ Final initialization failed:', error);
+        throw error;
+    }
+}
+
+// ===== FINAL INITIALIZATION AND ERROR HANDLING =====
+
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('🌐 DOM loaded, initializing TripMaster...');
     
     try {
-        window.tripMaster = new TripMaster();
+        const tripMaster = new TripMaster();
+        await tripMaster.initialize();
+        
         console.log('✅ TripMaster successfully created and attached to window');
         
-        // Make debugging easier
+        // Enhanced debugging tools
         window.debugTripMaster = {
-            state: () => window.tripMaster.state,
-            profile: () => window.tripMaster.userProfile,
+            state: () => tripMaster.state,
+            profile: () => tripMaster.userProfile,
+            storage: () => tripMaster.storage.getStorageInfo(),
+            health: () => tripMaster.storage.getStorageHealth(),
             components: () => ({
-                navigation: !!window.tripMaster.navigation,
-                tripSetup: !!window.tripMaster.tripSetup,
-                storage: !!window.tripMaster.storage
-            })
+                navigation: !!tripMaster.navigation,
+                tripSetup: !!tripMaster.tripSetup,
+                storage: !!tripMaster.storage,
+                listGenerator: !!tripMaster.listGenerator,
+                locationService: !!tripMaster.locationService
+            }),
+            emergencyReset: () => tripMaster.emergencyReset(),
+            forceSetupTab: () => {
+                tripMaster.navigation.switchTab('setup');
+                tripMaster.ensureSetupTabVisible();
+            }
         };
         
     } catch (error) {
         console.error('❌ TripMaster initialization failed:', error);
         
-        // Show error to user
+        // Show error to user with recovery options
         const errorDiv = document.createElement('div');
-        errorDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #f44336; color: white; padding: 15px; border-radius: 8px; z-index: 1000;';
-        errorDiv.textContent = 'TripMaster failed to load. Check console for details.';
+        errorDiv.style.cssText = `
+            position: fixed; top: 20px; right: 20px; 
+            background: #f44336; color: white; 
+            padding: 15px; border-radius: 8px; 
+            z-index: 1000; max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        `;
+        errorDiv.innerHTML = `
+            <h4 style="margin: 0 0 10px 0;">TripMaster Failed to Load</h4>
+            <p style="margin: 0 0 10px 0; font-size: 14px;">The app encountered an error during startup.</p>
+            <button onclick="location.reload()" style="background: white; color: #f44336; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">Refresh Page</button>
+        `;
         document.body.appendChild(errorDiv);
+        
+        // Remove error after 10 seconds
+        setTimeout(() => {
+            if (errorDiv.parentNode) {
+                errorDiv.remove();
+            }
+        }, 10000);
     }
 });
 
-// ===== ERROR HANDLING =====
+// ===== ENHANCED ERROR HANDLING =====
 
 window.addEventListener('error', (event) => {
-    console.error('Global error:', event.error);
+    console.error('TripMaster error:', event.error);
+    
+    // Profile-aware error reporting
+    const userProfile = window.tripMaster?.userProfile;
+    const context = userProfile ? ` (User: ${userProfile.name})` : '';
+    
+    console.error(`Error context${context}:`, {
+        message: event.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        userProfile: userProfile?.name || 'Anonymous',
+        currentTab: window.tripMaster?.state?.activeTab || 'unknown',
+        hasTrip: !!(window.tripMaster?.state?.trip?.location)
+    });
+    
+    // Try to recover from certain errors
+    if (event.message.includes('storage') || event.message.includes('localStorage')) {
+        console.warn('Storage error detected - attempting recovery');
+        if (window.tripMaster) {
+            window.tripMaster.handleStorageError(event.error);
+        }
+    }
 });
 
 window.addEventListener('unhandledrejection', (event) => {
-    console.error('Unhandled promise rejection:', event.reason);
+    console.error('TripMaster unhandled promise rejection:', event.reason);
+    
+    // Profile-aware promise rejection handling
+    const userProfile = window.tripMaster?.userProfile;
+    const context = userProfile ? ` (User: ${userProfile.name})` : '';
+    
+    console.error(`Promise rejection context${context}:`, {
+        reason: event.reason,
+        userProfile: userProfile?.name || 'Anonymous',
+        currentOperation: window.tripMaster?.state?.isLoading ? 'loading' : 'idle'
+    });
+    
+    // Try to recover from certain promise rejections
+    if (event.reason && event.reason.toString().includes('fetch')) {
+        console.warn('Network error detected - user will be notified');
+        if (window.tripMaster && window.tripMaster.notification) {
+            window.tripMaster.notification.show('Network error - some features may not work', 'warning', 3000);
+        }
+    }
 });
 
+// ===== VISIBILITY CHANGE HANDLING =====
+
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && window.tripMaster) {
+        // Page became visible - check for updates
+        console.log('Page visible - checking for updates');
+        
+        // Reload saved state in case another tab made changes
+        const currentTrip = window.tripMaster.storage.getCurrentTrip();
+        if (currentTrip && currentTrip.meta && currentTrip.meta.lastModified) {
+            const lastModified = new Date(currentTrip.meta.lastModified).getTime();
+            const currentLastModified = window.tripMaster.state.trip.meta?.lastModified ? 
+                new Date(window.tripMaster.state.trip.meta.lastModified).getTime() : 0;
+            
+            if (lastModified > currentLastModified) {
+                console.log('Trip updated in another tab - syncing');
+                window.tripMaster.state.trip = { ...currentTrip };
+                window.tripMaster.updateAllComponents();
+                
+                if (window.tripMaster.userProfile) {
+                    window.tripMaster.notification.show(`🔄 ${window.tripMaster.userProfile.name}, synced updates from another tab`, 'info', 2000);
+                }
+            }
+        }
+    }
+});
+
+// Export for potential module usage
 export default TripMaster;
