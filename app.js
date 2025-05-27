@@ -681,7 +681,7 @@ class TripMaster {
 
     updatePackingComponents() {
         if (Object.keys(this.state.trip.items).length > 0) {
-            this.checklistDisplay.loadItems(this.state.trip.items, this.state.trip.completedItems);
+           this.checklistDisplay.render(this.state.trip.items, this.state.trip);
             this.checklistDisplay.updateTripSummary(this.state.trip);
         }
         
