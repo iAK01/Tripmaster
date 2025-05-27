@@ -796,7 +796,7 @@ class TripMaster {
             }
         }
     }
-}
+
 
 // ===== ENHANCED TRIP GENERATION WITH LOCATION INTELLIGENCE =====
 
