@@ -221,7 +221,31 @@ dorm_room_essentials: '🏨'
         };
     }
 
+    loadItems(items, completedItems = []) {
+    // Update item completion status
+    if (completedItems && completedItems.length > 0) {
+        completedItems.forEach(itemId => {
+            const [category, itemKey] = itemId.split('.');
+            if (items[category] && items[category][itemKey]) {
+                items[category][itemKey].completed = true;
+            }
+        });
+    }
+    
+    // Call render with the updated items
+    this.render(items);
+}
+
+// Also add this method for compatibility
+updateTripSummary(tripData) {
+    // Re-render with trip data to update summary
+    if (this.currentItems) {
+        this.render(this.currentItems, tripData);
+    }
+}
+
     render(items, tripData = null) {
+        this.currentItems = items;
         this.container.innerHTML = '';
         
         // Add enhanced trip summary
