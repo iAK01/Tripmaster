@@ -714,10 +714,16 @@ updatePackingComponents() {
         }
     }
 
-    updateProgressComponents() {
-        const progress = this.calculateOverallProgress();
-        this.progressTracking.update(progress);
-    }
+  updateProgressComponents() {
+    const progress = this.calculateOverallProgress();
+    // FIX: Convert to the format progress-tracking expects
+    const progressData = {
+        percentage: progress,
+        completed: this.state.trip.completedItems.length,
+        total: Object.values(this.state.trip.items).reduce((sum, cat) => sum + Object.keys(cat).length, 0)
+    };
+    this.progressTracking.update(progressData);
+}
 
     updateOverviewComponents() {
         const overviewSection = document.getElementById('overview-section');
