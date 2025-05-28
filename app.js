@@ -719,7 +719,7 @@ updatePackingComponents() {
 
     updateProgressComponents() {
         const progress = this.calculateOverallProgress();
-        this.progressTracking.updateProgress(progress);
+        this.progressTracking.update(progress);
     }
 
     updateOverviewComponents() {
