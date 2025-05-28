@@ -14,8 +14,7 @@ export class TripSetup {
         this.userProfile = null;
         this.showingProfileSetup = false;
         this.pendingTripData = null; // 🔧 FIX: Store data if DOM not ready
-        
-        this.render();
+      
     }
 
     // ===== USER PROFILE SETUP METHODS =====
