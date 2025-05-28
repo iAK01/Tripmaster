@@ -200,11 +200,16 @@ if (this.storageManager.saveUserProfile(profileData)) {
     }
 
     
-    render() {
-        // Check if we need to show profile setup first
-       if (!this.checkProfileSetup()) {
-    return; // Profile setup is now showing
-}
+render() {
+    // FIX: Reset the profile setup flag if profile exists
+    if (this.userProfile && this.showingProfileSetup) {
+        this.showingProfileSetup = false;
+    }
+    
+    // Check if we need to show profile setup first
+    if (!this.showingProfileSetup && !this.checkProfileSetup()) {
+        return; // Profile setup is now showing
+    }
 
         this.container.innerHTML = `
             <div class="trip-setup" id="tripSetup">
