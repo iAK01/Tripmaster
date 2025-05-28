@@ -25,18 +25,18 @@ export class TripSetup {
         this.userProfile = storageManager ? storageManager.getUserProfile() : null;
     }
 
-    checkProfileSetup() {
-        if (!this.storageManager) return false;
-        
-        this.userProfile = this.storageManager.getUserProfile();
-        
-if (!this.userProfile || !isProfileComplete(this.userProfile)) {
-    this.showProfileSetup();
-    return false;
-
-        }
-        return true;
+   checkProfileSetup() {
+    if (!this.storageManager) return false;
+    
+    this.userProfile = this.storageManager.getUserProfile();
+    
+    if (!this.userProfile || !isProfileComplete(this.userProfile)) {
+        this.showProfileSetup();
+        return false;
     }
+    // Profile exists and is complete - DON'T show profile setup
+    return true;
+}
 
     showProfileSetup() {
         this.showingProfileSetup = true;
