@@ -1915,10 +1915,6 @@ export class ItineraryDisplay {
        this.updateProgressDisplays();
    }
 
-   // Save/load progress methods (enhanced versions)
-   loadProgressData() {
-       return this.loadProgressData();
-   }
 
    saveProgressData() {
        return this.saveProgressData();
