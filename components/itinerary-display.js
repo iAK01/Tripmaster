@@ -1924,4 +1924,4 @@ export class ItineraryDisplay {
        return this.saveProgressData();
    }
 }
-}
+
