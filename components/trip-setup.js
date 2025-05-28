@@ -19,10 +19,13 @@ export class TripSetup {
 
     // ===== USER PROFILE SETUP METHODS =====
     
-    setStorageManager(storageManager) {
-        this.storageManager = storageManager;
-        this.userProfile = storageManager ? storageManager.getUserProfile() : null;
-    }
+ setStorageManager(storageManager) {
+    this.storageManager = storageManager;
+    this.userProfile = storageManager ? storageManager.getUserProfile() : null;
+    
+    // NOW render after we have the storage manager
+    this.render();
+}
 
    checkProfileSetup() {
     if (!this.storageManager) return false;
