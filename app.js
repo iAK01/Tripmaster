@@ -198,54 +198,46 @@ console.log('Instance methods:', Object.getOwnPropertyNames(Object.getPrototypeO
         this.updateNavigationProgress();
     }
 
-    showTab(tabId) {
-        console.log(`🔄 Showing tab: ${tabId}`);
-        
-        // Hide all tab content sections
-        document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        
-        // Show the target tab section
-        const targetSection = document.getElementById(`${tabId}-section`);
-        if (targetSection) {
-            targetSection.classList.add('active');
-            console.log(`✅ Tab ${tabId} shown successfully`);
-        } else {
-            console.error(`❌ Tab section ${tabId}-section not found`);
-        }
+showTab(tabId) {
+    console.log(`🔄 Showing tab: ${tabId}`);
+
+    // Hide all tab sections
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+        tab.style.display = 'none';
+    });
+
+    // Show only the target tab section
+    const targetSection = document.getElementById(`${tabId}-section`);
+    if (targetSection) {
+        targetSection.classList.add('active');
+        targetSection.style.display = 'block';
+        console.log(`✅ Tab ${tabId} shown successfully`);
+    } else {
+        console.error(`❌ Tab section ${tabId}-section not found`);
+    }
+}
+
+ensureSetupTabVisible() {
+    console.log('🔧 Ensuring setup tab is properly visible...');
+
+    // Only show setup section if we're actually on the setup tab
+    const setupSection = document.getElementById('setup-section');
+    if (setupSection) {
+        setupSection.classList.add('active');
     }
 
-    ensureSetupTabVisible() {
-        console.log('🔧 Ensuring setup tab is properly visible...');
-        
-        const setupSection = document.getElementById('setup-section');
-        const tripSetupContainer = document.getElementById('trip-setup-section');
-        
-        if (setupSection) {
-            setupSection.classList.add('active');
-            setupSection.style.display = 'block';
-            setupSection.style.visibility = 'visible';
-            setupSection.style.opacity = '1';
-        }
-        
-        if (tripSetupContainer) {
-            tripSetupContainer.style.display = 'block';
-            tripSetupContainer.style.visibility = 'visible';
-            tripSetupContainer.style.opacity = '1';
-        }
-        
-        // If no profile, ensure profile setup shows
-        if (!this.userProfile) {
-            setTimeout(() => {
-                if (this.tripSetup && this.tripSetup.showProfileSetup) {
-                    this.tripSetup.showProfileSetup();
-                }
-            }, 100);
-        }
-        
-        console.log('✅ Setup tab forced visible');
+    // If no profile, show the profile setup form inside TripSetup
+    if (!this.userProfile) {
+        setTimeout(() => {
+            if (this.tripSetup && this.tripSetup.showProfileSetup) {
+                this.tripSetup.showProfileSetup();
+            }
+        }, 100);
     }
+
+    console.log('✅ Setup tab visibility handled');
+}
 
     showInitialTab() {
         this.navigation.switchTab('overview');
