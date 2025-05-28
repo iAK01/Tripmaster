@@ -380,7 +380,7 @@ export class ItineraryDisplay {
             element.style.backgroundColor = '';
         }, 1000);
     }
-}
+
 // ===== MAIN RENDER METHOD WITH ENHANCED UX =====
     render(itineraryData, tripInfo = null) {
         if (!itineraryData || !itineraryData.days) {
