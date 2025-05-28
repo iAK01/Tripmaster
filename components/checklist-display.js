@@ -247,6 +247,21 @@ updateTripSummary(tripData) {
     render(items, tripData = null) {
         this.currentItems = items;
         this.container.innerHTML = '';
+
+            // Add itinerary prompt if no itinerary loaded
+    if (!tripData || !tripData.itinerary || tripData.itinerary.days.length === 0) {
+        const promptDiv = document.createElement('div');
+        promptDiv.className = 'itinerary-prompt';
+        promptDiv.innerHTML = `
+            <div class="prompt-banner">
+                <p>💡 <strong>Get Smarter Packing:</strong> Import your itinerary to add activity-specific items!</p>
+                <button onclick="window.tripMaster.navigation.switchTab('itinerary')" class="btn btn-primary">
+                    Go to Itinerary Tab
+                </button>
+            </div>
+        `;
+        this.container.appendChild(promptDiv);
+    }
         
         // Add enhanced trip summary
         if (tripData) {
