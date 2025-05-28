@@ -3763,3 +3763,115 @@ select {
         border: 1px solid #dee2e6 !important;
     }
 }
+
+    .itinerary-main-container {
+   max-width: 1200px;
+   margin: 0 auto;
+   padding: 20px;
+}
+
+.itinerary-enhanced-header {
+   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   color: white;
+   padding: 20px;
+   border-radius: 12px;
+   margin-bottom: 20px;
+}
+
+.enhanced-day-accordion {
+   background: white;
+   border-radius: 12px;
+   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+   margin-bottom: 16px;
+   overflow: hidden;
+   transition: all 0.3s ease;
+}
+
+.enhanced-day-accordion:hover {
+   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+   transform: translateY(-2px);
+}
+
+.day-accordion-header {
+   padding: 20px;
+   background: #f8f9fa;
+   border-bottom: 1px solid #e9ecef;
+   cursor: pointer;
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+}
+
+.enhanced-stop-accordion {
+   border-left: 4px solid #3498db;
+   margin: 16px 0;
+   background: white;
+   border-radius: 8px;
+   overflow: hidden;
+   transition: all 0.3s ease;
+}
+
+.enhanced-stop-accordion.completed {
+   border-left-color: #27ae60;
+   background: #f8fff8;
+}
+
+.enhanced-stop-accordion.required {
+   border-left-color: #f39c12;
+}
+
+.modern-checkbox {
+   appearance: none;
+   width: 20px;
+   height: 20px;
+   border: 2px solid #ddd;
+   border-radius: 4px;
+   position: relative;
+   cursor: pointer;
+}
+
+.modern-checkbox:checked {
+   background: #27ae60;
+   border-color: #27ae60;
+}
+
+.modern-checkbox:checked::after {
+   content: '✓';
+   position: absolute;
+   top: -2px;
+   left: 2px;
+   color: white;
+   font-size: 14px;
+}
+
+.completion-animation {
+   animation: completionPulse 0.6s ease;
+}
+
+@keyframes completionPulse {
+   0% { transform: scale(1); }
+   50% { transform: scale(1.05); background-color: #e8f5e8; }
+   100% { transform: scale(1); }
+}
+
+.achievement-notification {
+   position: fixed;
+   top: 20px;
+   left: 50%;
+   transform: translateX(-50%) translateY(-100px);
+   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+   color: white;
+   padding: 16px 24px;
+   border-radius: 50px;
+   box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+   z-index: 1001;
+   transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.achievement-notification.show {
+   transform: translateX(-50%) translateY(0);
+}
+
+.achievement-notification.hide {
+   transform: translateX(-50%) translateY(-100px);
+}
