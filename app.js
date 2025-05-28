@@ -706,9 +706,6 @@ updatePackingComponents() {
         }
     }
     
-    if (this.state.trip.weather) {
-        this.weatherDisplay.displayWeather(this.state.trip.weather);
-    }
 }
 
     updateItineraryComponents() {
