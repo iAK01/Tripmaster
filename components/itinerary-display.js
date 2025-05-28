@@ -1,4 +1,3 @@
-// components/itinerary-display.js - Refactored with Better UX & Accordions
 export class ItineraryDisplay {
     constructor(options) {
         this.container = options.container;
@@ -10,30 +9,23 @@ export class ItineraryDisplay {
         this.state = {
             currentItineraryData: null,
             expandedDays: new Set(),
-            expandedSections: new Map(), // Track which accordion sections are open per stop
+            expandedSections: new Map(),
             filters: {
                 showCompleted: true,
                 showIncomplete: true,
                 showRequired: true
             },
-            viewMode: 'timeline' // timeline, compact, detailed
+            viewMode: 'timeline'
         };
         
-        // Progress tracking with enhanced features
         this.progressData = this.loadProgressData();
-        
-        // Map tracking for interactive maps
         this.activeMaps = new Map();
-        
-        // Animation and interaction helpers
         this.animationQueue = [];
         this.isAnimating = false;
         
-        // Initialize the component
         this.init();
     }
 
-    // ===== ENHANCED INITIALIZATION =====
     init() {
         this.bindGlobalEvents();
         this.setupKeyboardShortcuts();
@@ -42,9 +34,8 @@ export class ItineraryDisplay {
     }
 
     bindGlobalEvents() {
-        // Global click handler for accordion management
         document.addEventListener('click', (e) => {
-            if (e.target.closest('.accordion-header')) {
+            if (e.target.closest('.accordion-header, .day-accordion-header, .stop-accordion-header, .detail-accordion-header')) {
                 this.handleAccordionClick(e);
             }
             if (e.target.closest('.quick-action-btn')) {
@@ -52,7 +43,6 @@ export class ItineraryDisplay {
             }
         });
         
-        // Global change handler for checkboxes and inputs
         document.addEventListener('change', (e) => {
             if (e.target.classList.contains('completion-checkbox')) {
                 this.handleStopToggle(e);
@@ -62,7 +52,6 @@ export class ItineraryDisplay {
             }
         });
         
-        // Global input handler for notes
         document.addEventListener('input', (e) => {
             if (e.target.classList.contains('personal-note-input')) {
                 this.handleNoteInput(e);
@@ -121,7 +110,6 @@ export class ItineraryDisplay {
         }
     }
 
-    // ===== ENHANCED PROGRESS TRACKING =====
     loadProgressData() {
         try {
             const saved = localStorage.getItem('tripmaster-itinerary-progress');
@@ -143,7 +131,6 @@ export class ItineraryDisplay {
             if (!saved) return defaultData;
             
             const data = JSON.parse(saved);
-            // Merge with default structure for backward compatibility
             return { ...defaultData, ...data };
             
         } catch (error) {
@@ -163,7 +150,6 @@ export class ItineraryDisplay {
 
     saveProgressData() {
         try {
-            // Update session time
             const now = Date.now();
             const sessionTime = now - this.progressData.sessionStart;
             this.progressData.timeSpent += sessionTime;
@@ -928,7 +914,7 @@ export class ItineraryDisplay {
         return extras.length > 0 ? `<div class="day-extras">${extras.join('')}</div>` : '';
     }
 // ===== ENHANCED ACCORDION INTERACTION HANDLERS =====
-    handleAccordionClick(e) {
+        handleAccordionClick(e) {
         e.preventDefault();
         e.stopPropagation();
         
@@ -936,8 +922,19 @@ export class ItineraryDisplay {
         if (!header) return;
         
         const accordionId = header.dataset.accordion;
-        const content = document.getElementById(`${accordionId.replace(/^(day|stop|detail)-/, '').replace(/^/, accordionId.startsWith('day') ? 'day-content-' : accordionId.startsWith('stop') ? 'stop-content-' : 'detail-content-')}`);
+        if (!accordionId) return;
         
+        // FIXED: Simplified content ID generation
+        let contentId;
+        if (accordionId.startsWith('day-')) {
+            contentId = `day-content-${accordionId.replace('day-', '')}`;
+        } else if (accordionId.startsWith('stop-')) {
+            contentId = `stop-content-${accordionId.replace('stop-', '')}`;
+        } else if (accordionId.startsWith('detail-')) {
+            contentId = `detail-content-${accordionId.replace('detail-', '')}`;
+        }
+        
+        const content = document.getElementById(contentId);
         if (!content) return;
         
         const isExpanded = content.classList.contains('expanded');
@@ -954,13 +951,11 @@ export class ItineraryDisplay {
             content.classList.add('expanded');
             content.style.maxHeight = content.scrollHeight + 'px';
             
-            // Reset max-height after animation
             setTimeout(() => {
                 content.style.maxHeight = 'none';
             }, 300);
         }
         
-        // Update expand indicator
         if (expandIndicator) {
             expandIndicator.classList.toggle('expanded', !isExpanded);
         }
@@ -972,7 +967,6 @@ export class ItineraryDisplay {
                 this.state.expandedDays.delete(dayDate);
             } else {
                 this.state.expandedDays.add(dayDate);
-                // Initialize map if needed
                 setTimeout(() => this.initializeMap(dayDate), 100);
             }
         } else if (accordionId.startsWith('stop-')) {
@@ -982,7 +976,6 @@ export class ItineraryDisplay {
         
         this.saveUserPreferences();
     }
-
     handleQuickAction(e) {
         const action = e.target.dataset.action;
         const target = e.target.dataset.date || e.target.dataset.stop;
@@ -1930,4 +1923,5 @@ export class ItineraryDisplay {
    saveProgressData() {
        return this.saveProgressData();
    }
+}
 }
