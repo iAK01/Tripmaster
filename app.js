@@ -122,7 +122,8 @@ try {
         onItemAdd: (category, item, quantity) => this.handleItemAdd(category, item, quantity),
         onNoteUpdate: (category, item, note) => this.handleNoteUpdate(category, item, note)
     });
-    console.log('✅ ChecklistDisplay created successfully');
+  console.log('ChecklistDisplay prototype:', Object.getOwnPropertyNames(ChecklistDisplay.prototype));
+console.log('Instance methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(this.checklistDisplay)));
 } catch (error) {
     console.error('❌ ChecklistDisplay creation FAILED:', error);
     console.error('Error details:', error.stack);
