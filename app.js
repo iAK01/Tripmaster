@@ -283,6 +283,20 @@ console.log('Instance methods:', Object.getOwnPropertyNames(Object.getPrototypeO
                 this.notification.show('🧠 Analyzing your trip requirements...', 'info', 2000);
             }
 
+            setTimeout(() => {
+    if (this.state.trip.items && Object.keys(this.state.trip.items).length > 0) {
+        // Show workflow guidance
+        this.notification.show(
+            '💡 TIP: Import your itinerary now to get activity-specific packing items!', 
+            'info', 
+            6000
+        );
+        
+        // Highlight the itinerary tab
+        this.navigation.highlightTab('itinerary');
+    }
+}, 12000);
+
             // Enhanced transport/accommodation messaging
             setTimeout(() => {
                 if (tripData.transportation && tripData.transportation.length > 0) {
