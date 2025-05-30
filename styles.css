@@ -4049,3 +4049,25 @@ select {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+save-status {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(40, 167, 69, 0.9);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    z-index: 1001;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.save-status.hidden {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-50px);
+    pointer-events: none;
+}
