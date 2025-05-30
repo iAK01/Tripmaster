@@ -1438,9 +1438,6 @@ async loadSavedState() {
         this.notification.show('Failed to restore previous data. Starting fresh.', 'warning', 3000);
         this.showInitialTab();
     }
-}
-
-// ADD this new method
 determineInitialTab() {
     const hasBasicTrip = this.state.trip.location && this.state.trip.nights;
     const hasPackingList = this.state.trip.items && Object.keys(this.state.trip.items).length > 0;
@@ -1505,6 +1502,8 @@ setupEnhancedAutoSave() {
     
     console.log('✅ Enhanced auto-save system initialized');
 }
+}
+
 // ===== INITIALIZATION =====
 
 document.addEventListener('DOMContentLoaded', async () => {
