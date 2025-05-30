@@ -731,38 +731,112 @@ updatePackingComponents() {
     this.progressTracking.update(progressData);
 }
 
-    updateOverviewComponents() {
-        const overviewSection = document.getElementById('overview-section');
-        if (overviewSection) {
-            const greeting = this.userProfile ? `Hi ${this.userProfile.name}!` : 'Welcome to TripMaster!';
-            const hasTrip = this.state.trip.location && this.state.trip.nights;
+  updateOverviewComponents() {
+    const overviewSection = document.getElementById('overview-section');
+    if (overviewSection) {
+        const greeting = this.userProfile ? `Hi ${this.userProfile.name}!` : 'Welcome to TripMaster!';
+        const hasTrip = this.state.trip.location && this.state.trip.nights;
+        
+        // Build travel intelligence display
+        let intelligenceHTML = '';
+        if (this.state.trip.travelIntelligence) {
+            const intel = this.state.trip.travelIntelligence;
+            const insights = [];
             
-            overviewSection.innerHTML = `
-                <div class="overview-content" style="padding: 20px;">
-                    <div class="overview-header">
-                        <h2>${greeting}</h2>
-                        <p>${hasTrip ? `Planning your trip to ${this.state.trip.location}` : 'Plan your perfect trip with intelligent packing'}</p>
+            if (intel.electrical) {
+                insights.push({
+                    icon: intel.electrical.needsAdapter ? '🔌' : '✅',
+                    text: intel.electrical.recommendation,
+                    type: intel.electrical.needsAdapter ? 'warning' : 'success'
+                });
+            }
+            
+            if (intel.currency) {
+                insights.push({
+                    icon: intel.currency.needsExchange ? '💱' : '💰',
+                    text: intel.currency.recommendation,
+                    type: intel.currency.needsExchange ? 'info' : 'success'
+                });
+            }
+            
+            if (intel.language) {
+                insights.push({
+                    icon: intel.language.sameLanguage ? '🗣️' : '🌍',
+                    text: intel.language.recommendation,
+                    type: intel.language.sameLanguage ? 'success' : 'info'
+                });
+            }
+            
+            if (intel.weather && intel.weather.recommendation) {
+                insights.push({
+                    icon: '🌤️',
+                    text: intel.weather.recommendation,
+                    type: 'info'
+                });
+            }
+            
+            if (insights.length > 0) {
+                intelligenceHTML = `
+                    <div class="travel-intelligence-section">
+                        <h3>🧠 Travel Intelligence</h3>
+                        <div class="intelligence-insights">
+                            ${insights.map(insight => `
+                                <div class="insight-card ${insight.type}">
+                                    <span class="insight-icon">${insight.icon}</span>
+                                    <span class="insight-text">${insight.text}</span>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
-                    
-                    ${hasTrip ? `
-                        <div class="trip-summary" style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                            <h3>📋 Current Trip</h3>
+                `;
+            }
+        }
+        
+        // Build activities display
+        let activitiesHTML = '';
+        if (this.state.trip.activities && this.state.trip.activities.length > 0) {
+            activitiesHTML = `
+                <div class="trip-activities">
+                    <strong>🎯 Activities:</strong> ${this.state.trip.activities.join(', ')}
+                </div>
+            `;
+        }
+        
+        overviewSection.innerHTML = `
+            <div class="overview-content">
+                <div class="overview-header">
+                    <h2>${greeting}</h2>
+                    <p>${hasTrip ? `Planning your trip to ${this.state.trip.location}` : 'Plan your perfect trip with intelligent packing'}</p>
+                </div>
+                
+                ${hasTrip ? `
+                    <div class="trip-summary-card">
+                        <h3>📋 Current Trip</h3>
+                        <div class="trip-basic-details">
                             <p><strong>📍 Destination:</strong> ${this.state.trip.location}</p>
                             ${this.userProfile ? `<p><strong>🏠 From:</strong> ${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}</p>` : ''}
                             <p><strong>🌙 Duration:</strong> ${this.state.trip.nights} nights</p>
                             <p><strong>🎯 Type:</strong> ${this.state.trip.tripType}</p>
+                            ${activitiesHTML}
                         </div>
-                    ` : `
-                        <div class="getting-started" style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                            <h3>🚀 Let's Start Planning!</h3>
-                            <p>Click "Trip Setup" to begin creating your intelligent packing list</p>
-                            ${!this.userProfile ? '<p>💡 Set up your profile for personalized travel intelligence!</p>' : ''}
-                        </div>
-                    `}
-                </div>
-            `;
-        }
+                    </div>
+                    
+                    ${intelligenceHTML}
+                    
+                ` : `
+                    <div class="getting-started-card">
+                        <h3>🚀 Let's Start Planning!</h3>
+                        <p>Click "Trip Setup" to begin creating your intelligent packing list</p>
+                        ${!this.userProfile ? '<p>💡 Set up your profile for personalized travel intelligence!</p>' : ''}
+                        <button class="btn btn-primary" onclick="window.tripMaster.navigation.switchTab('setup')">
+                            🧳 Start Trip Setup
+                        </button>
+                    </div>
+                `}
+            </div>
+        `;
     }
+}
 
     updateLocalInfoComponents() {
         const localInfoSection = document.getElementById('local-info-section');
