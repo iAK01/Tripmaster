@@ -53,6 +53,7 @@ class TripMaster {
             this.initializeComponents();
             this.bindEvents();
             this.loadSavedState();
+            this.setupEnhancedAutoSave();            
             this.showInitialTab();
             
             console.log('✅ TripMaster initialized successfully');
