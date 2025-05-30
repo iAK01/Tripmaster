@@ -12,6 +12,19 @@ export class StorageManager {
         this.ITINERARY_PROGRESS_KEY = 'tripmaster-itinerary-progress';
     }
 
+safeStringifyLength(obj) {
+    try {
+        return JSON.stringify(obj, (key, value) => {
+            if (key === 'userProfile' || key === 'profile' || key === 'currentTrip') {
+                return undefined;
+            }
+            return value;
+        }).length;
+    } catch (error) {
+        return 0; // Return 0 if stringify fails
+    }
+}
+
     // ===== CURRENT TRIP OPERATIONS =====
     
 saveTrip(tripData) {
@@ -34,7 +47,7 @@ saveTrip(tripData) {
                 ...tripData.meta,
                 version: '2.0',
                 lastModified: new Date().toISOString(),
-                dataSize: JSON.stringify(tripData).length,
+                dataSize: this.safeStringifyLength(tripData),
                 hasItinerary: !!(tripData.itinerary && tripData.itinerary.days && tripData.itinerary.days.length > 0),
                 hasPacking: !!(tripData.items && Object.keys(tripData.items).length > 0)
             }
