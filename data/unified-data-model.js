@@ -1,3 +1,7 @@
+function generateTripId() {
+  return 'trip_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
 // data/unified-data-model.js - The heart of everything
 export const UnifiedTripModel = {
   // Core trip info
@@ -427,10 +431,6 @@ export const UnifiedTripModel = {
   }
 };
 
-// Helper function to generate unique trip ID
-function generateTripId() {
-    return 'trip_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
 
 // Then use it in createNewTrip
 export function createNewTrip(basicInfo = {}) {
