@@ -233,198 +233,224 @@ class TripMaster {
 
     // ===== TRIP GENERATION WITH UNIFIED MODEL =====
     
-    async handleGenerateTrip(tripData) {
-        try {
-            console.log('🚀 Generating trip with Unified Model:', tripData);
-            this.setLoading(true);
-            
-            // Enhanced messaging with profile
-            if (this.userProfile) {
-                this.notification.show(`🧠 ${this.userProfile.name}, analyzing your trip requirements...`, 'info', 2000);
-            } else {
-                this.notification.show('🧠 Analyzing your trip requirements...', 'info', 2000);
-            }
+   async handleGenerateTrip(tripData) {
+    try {
+        console.log('🚀 Generating trip with Unified Model:', tripData);
+        console.log('🚗 Transportation received:', tripData.transportation);
+        console.log('🏨 Accommodation received:', tripData.accommodation);
+        
+        this.setLoading(true);
+        
+        // Enhanced messaging with profile
+        if (this.userProfile) {
+            this.notification.show(`🧠 ${this.userProfile.name}, analyzing your trip requirements...`, 'info', 2000);
+        } else {
+            this.notification.show('🧠 Analyzing your trip requirements...', 'info', 2000);
+        }
 
-            // UNIFIED MODEL: Update trip info properly
-            this.state.trip.tripInfo.destination = {
-                ...this.state.trip.tripInfo.destination,
-                city: tripData.location.split(',')[0]?.trim() || '',
-                country: tripData.location.split(',')[1]?.trim() || '',
-                // Will be enriched by location service
-            };
-            
-            this.state.trip.tripInfo.nights = tripData.nights;
-            this.state.trip.tripInfo.tripType = tripData.tripType;
-            this.state.trip.tripInfo.startDate = tripData.startDate;
-            this.state.trip.tripInfo.notes = tripData.notes || '';
-            
-            // Calculate end date
-            if (tripData.startDate && tripData.nights) {
-                const endDate = new Date(tripData.startDate);
-                endDate.setDate(endDate.getDate() + tripData.nights);
-                this.state.trip.tripInfo.endDate = endDate.toISOString().split('T')[0];
-            }
+        // UNIFIED MODEL: Update trip info properly
+        this.state.trip.tripInfo.destination = {
+            ...this.state.trip.tripInfo.destination,
+            city: tripData.location.split(',')[0]?.trim() || '',
+            country: tripData.location.split(',')[1]?.trim() || '',
+        };
+        
+        this.state.trip.tripInfo.nights = tripData.nights;
+        this.state.trip.tripInfo.tripType = tripData.tripType;
+        this.state.trip.tripInfo.startDate = tripData.startDate;
+        this.state.trip.tripInfo.notes = tripData.notes || '';
+        
+        // Calculate end date
+        if (tripData.startDate && tripData.nights) {
+            const endDate = new Date(tripData.startDate);
+            endDate.setDate(endDate.getDate() + tripData.nights);
+            this.state.trip.tripInfo.endDate = endDate.toISOString().split('T')[0];
+        }
 
-            // Store transportation and accommodation in logistics
-            if (tripData.transportation && tripData.transportation.length > 0) {
-                // For now, store in a way that's compatible with the list generator
-                this.state.trip.logistics.transportation = tripData.transportation || [];
-                // Also keep for backward compatibility with components expecting simple format
-                this.state.trip.transportation = tripData.transportation || [];
-            }
+        // FIX: ENSURE TRANSPORTATION AND ACCOMMODATION ARE PROPERLY STORED
+        // Store as arrays at the top level for backward compatibility
+        this.state.trip.transportation = Array.isArray(tripData.transportation) ? 
+            tripData.transportation : 
+            (tripData.transportation ? [tripData.transportation] : []);
             
-            if (tripData.accommodation && tripData.accommodation.length > 0) {
-                this.state.trip.logistics.accommodationType = tripData.accommodation || [];
-                // Also keep for backward compatibility
-                this.state.trip.accommodation = tripData.accommodation || [];
-            }
+        this.state.trip.accommodation = Array.isArray(tripData.accommodation) ? 
+            tripData.accommodation : 
+            (tripData.accommodation ? [tripData.accommodation] : []);
 
-            // Store activities and options
-            this.state.trip.activities = tripData.activities || [];
-            this.state.trip.transportationOptions = tripData.transportationOptions || [];
-            this.state.trip.accommodationOptions = tripData.accommodationOptions || [];
+        // Also store in logistics for unified model
+        this.state.trip.logistics = {
+            ...this.state.trip.logistics,
+            transportation: this.state.trip.transportation,
+            accommodationType: this.state.trip.accommodation,
+            activities: tripData.activities || []
+        };
 
-            // Location intelligence with unified model
-            if (this.userProfile && tripData.location) {
-                try {
-                    this.notification.show('🌍 Getting location intelligence...', 'info', 1500);
+        // Store other trip data
+        this.state.trip.activities = tripData.activities || [];
+        this.state.trip.transportationOptions = tripData.transportationOptions || [];
+        this.state.trip.accommodationOptions = tripData.accommodationOptions || [];
+        
+        console.log('📦 State before location intelligence:', {
+            transportation: this.state.trip.transportation,
+            accommodation: this.state.trip.accommodation
+        });
+
+        // Location intelligence with unified model
+        if (this.userProfile && tripData.location) {
+            try {
+                this.notification.show('🌍 Getting location intelligence...', 'info', 1500);
+                
+                const originLocation = `${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}`;
+                
+                const locationResult = await this.locationService.enrichTripLocations(
+                    originLocation,
+                    tripData.location,
+                    tripData.nights,
+                    new Date(tripData.startDate),
+                    this.userProfile
+                );
+
+                if (locationResult.success) {
+                    // Store in unified model
+                    this.state.trip.tripInfo.origin = {
+                        ...this.state.trip.tripInfo.origin,
+                        ...locationResult.origin
+                    };
                     
-                    const originLocation = `${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}`;
+                    this.state.trip.tripInfo.destination = {
+                        ...this.state.trip.tripInfo.destination,
+                        ...locationResult.destination
+                    };
                     
-                    const locationResult = await this.locationService.enrichTripLocations(
-                        originLocation,
-                        tripData.location,
-                        tripData.nights,
-                        new Date(tripData.startDate),
-                        this.userProfile
-                    );
-
-                    if (locationResult.success) {
-                        // Store in unified model
-                        this.state.trip.tripInfo.origin = {
-                            ...this.state.trip.tripInfo.origin,
-                            ...locationResult.origin
-                        };
-                        
-                        this.state.trip.tripInfo.destination = {
-                            ...this.state.trip.tripInfo.destination,
-                            ...locationResult.destination
-                        };
-                        
-                        // Calculate and store travel intelligence
-                        this.state.trip.travelIntelligence = calculateTravelIntelligence(this.state.trip);
-                        
-                        // Store quick reference data
-                        this.state.trip.quickReference.emergency.local = locationResult.destination.emergency;
-                        this.state.trip.quickReference.language.essentialPhrases = locationResult.destination.essentialPhrases;
-                        this.state.trip.quickReference.customs = locationResult.destination.localCustoms;
-                        
-                        setTimeout(() => {
-                            this.showTravelIntelligenceInsights(this.state.trip.travelIntelligence, this.userProfile.name);
-                        }, 3500);
-                        
-                    } else {
-                        console.warn('Location intelligence failed:', locationResult.error);
-                        this.notification.show('⚠️ Location intelligence unavailable - continuing with basic generation', 'warning', 2000);
-                    }
+                    // Calculate and store travel intelligence
+                    this.state.trip.travelIntelligence = calculateTravelIntelligence(this.state.trip);
                     
-                } catch (locationError) {
-                    console.warn('Location intelligence failed:', locationError);
+                    // Store quick reference data
+                    this.state.trip.quickReference.emergency.local = locationResult.destination.emergency;
+                    this.state.trip.quickReference.language.essentialPhrases = locationResult.destination.essentialPhrases;
+                    this.state.trip.quickReference.customs = locationResult.destination.localCustoms;
+                    
+                    setTimeout(() => {
+                        this.showTravelIntelligenceInsights(this.state.trip.travelIntelligence, this.userProfile.name);
+                    }, 3500);
+                    
+                } else {
+                    console.warn('Location intelligence failed:', locationResult.error);
                     this.notification.show('⚠️ Location intelligence unavailable - continuing with basic generation', 'warning', 2000);
                 }
+                
+            } catch (locationError) {
+                console.warn('Location intelligence failed:', locationError);
+                this.notification.show('⚠️ Location intelligence unavailable - continuing with basic generation', 'warning', 2000);
             }
+        }
 
-            // Weather fetching
-            if (tripData.location) {
-                setTimeout(() => {
-                    this.notification.show('🌤️ Fetching weather forecast...', 'info', 1500);
-                }, 4000);
-                
-                await this.weatherDisplay.fetchWeather(tripData.location, tripData.nights);
-                const weatherData = this.weatherDisplay.getWeatherData();
-                
-                // Store in unified model
-                this.state.trip.weather.forecast = weatherData || [];
-                this.state.trip.weather.lastUpdated = new Date().toISOString();
-                
-                // Also keep for backward compatibility
-                this.state.trip.weather = weatherData;
-            }
-
-            // Enhanced item generation using unified model
+        // Weather fetching
+        if (tripData.location) {
             setTimeout(() => {
-                this.notification.show('🧠 Generating intelligent packing list...', 'info', 2000);
-            }, 6500);
-
-            // Create enhanced trip data for list generator (hybrid format for compatibility)
-            const enhancedTripData = {
-                // Legacy format for list generator compatibility
-                location: tripData.location,
-                nights: tripData.nights,
-                tripType: tripData.tripType,
-                startDate: tripData.startDate,
-                transportation: tripData.transportation,
-                accommodation: tripData.accommodation,
-                activities: tripData.activities,
-                transportationOptions: tripData.transportationOptions,
-                accommodationOptions: tripData.accommodationOptions,
-                
-                // Enhanced data from unified model
-                weather: this.state.trip.weather,
-                travelIntelligence: this.state.trip.travelIntelligence,
-                userProfile: this.userProfile,
-                tripInfo: this.state.trip.tripInfo,
-                originDestinationData: {
-                    origin: this.state.trip.tripInfo.origin,
-                    destination: this.state.trip.tripInfo.destination
-                }
-            };
-
-            const generatedItems = await this.listGenerator.generateItems(enhancedTripData);
+                this.notification.show('🌤️ Fetching weather forecast...', 'info', 1500);
+            }, 4000);
+            
+            await this.weatherDisplay.fetchWeather(tripData.location, tripData.nights);
+            const weatherData = this.weatherDisplay.getWeatherData();
             
             // Store in unified model
-            this.state.trip.packing.items = generatedItems;
-            this.state.trip.packing.generatedFrom = {
-                weather: true,
-                activities: true,
-                tripType: true,
-                duration: true,
-                destination: true
-            };
+            this.state.trip.weather.forecast = weatherData || [];
+            this.state.trip.weather.lastUpdated = new Date().toISOString();
             
-            // Also store for backward compatibility
-            this.state.trip.items = generatedItems;
-            this.state.trip.completedItems = [];
-
-            // Update metadata
-            this.state.trip.meta.lastModified = new Date().toISOString();
-            this.state.trip.meta.hasItinerary = !!(this.state.trip.itinerary && this.state.trip.itinerary.days && this.state.trip.itinerary.days.length > 0);
-            this.state.trip.meta.hasPacking = !!(generatedItems && Object.keys(generatedItems).length > 0);
-
-            // Update all components
-            this.updateAllComponents();
-
-            // Save using unified model
-            this.storage.saveTrip(this.state.trip);
-            this.state.hasUnsavedChanges = false;
-
-            // Success messaging
-            setTimeout(() => {
-                const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
-                this.notification.show(`🎯${userName}, smart trip plan generated!`, 'success', 4000);
-            }, 8000);
-
-            setTimeout(() => {
-                this.navigation.switchTab('packing');
-            }, 11000);
-
-        } catch (error) {
-            console.error('Error generating trip:', error);
-            this.notification.show('Failed to generate trip plan. Please try again.', 'error');
-        } finally {
-            this.setLoading(false);
+            // Also keep for backward compatibility
+            this.state.trip.weather = weatherData;
         }
+
+        // Enhanced item generation using unified model
+        setTimeout(() => {
+            this.notification.show('🧠 Generating intelligent packing list...', 'info', 2000);
+        }, 6500);
+
+        console.log('📦 State before list generation:', {
+            transportation: this.state.trip.transportation,
+            accommodation: this.state.trip.accommodation
+        });
+
+        // Create enhanced trip data for list generator (hybrid format for compatibility)
+        const enhancedTripData = {
+            // Legacy format for list generator compatibility
+            location: tripData.location,
+            nights: tripData.nights,
+            tripType: tripData.tripType,
+            startDate: tripData.startDate,
+            transportation: this.state.trip.transportation, // Use the stored arrays
+            accommodation: this.state.trip.accommodation,   // Use the stored arrays
+            activities: tripData.activities,
+            transportationOptions: tripData.transportationOptions,
+            accommodationOptions: tripData.accommodationOptions,
+            notes: tripData.notes,
+            
+            // Enhanced data from unified model
+            weather: this.state.trip.weather,
+            travelIntelligence: this.state.trip.travelIntelligence,
+            userProfile: this.userProfile,
+            tripInfo: this.state.trip.tripInfo,
+            originDestinationData: {
+                origin: this.state.trip.tripInfo.origin,
+                destination: this.state.trip.tripInfo.destination
+            }
+        };
+
+        const generatedItems = await this.listGenerator.generateItems(enhancedTripData);
+        
+        // Store in unified model
+        this.state.trip.packing.items = generatedItems;
+        this.state.trip.packing.generatedFrom = {
+            weather: true,
+            activities: true,
+            tripType: true,
+            duration: true,
+            destination: true
+        };
+        
+        // Also store for backward compatibility
+        this.state.trip.items = generatedItems;
+        this.state.trip.completedItems = [];
+
+        // Update metadata
+        this.state.trip.meta = {
+            ...this.state.trip.meta,
+            lastModified: new Date().toISOString(),
+            hasItinerary: !!(this.state.trip.itinerary && this.state.trip.itinerary.days && this.state.trip.itinerary.days.length > 0),
+            hasPacking: !!(generatedItems && Object.keys(generatedItems).length > 0)
+        };
+
+        console.log('📦 Final state before saving:', {
+            transportation: this.state.trip.transportation,
+            accommodation: this.state.trip.accommodation,
+            logistics: this.state.trip.logistics
+        });
+
+        // Update all components
+        this.updateAllComponents();
+
+        // Save using unified model - THIS IS WHERE WE NEED TO ENSURE DATA IS PRESERVED
+        this.storage.saveTrip(this.state.trip);
+        this.state.hasUnsavedChanges = false;
+
+        // Success messaging
+        setTimeout(() => {
+            const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
+            this.notification.show(`🎯${userName}, smart trip plan generated!`, 'success', 4000);
+        }, 8000);
+
+        setTimeout(() => {
+            this.navigation.switchTab('packing');
+        }, 11000);
+
+    } catch (error) {
+        console.error('Error generating trip:', error);
+        this.notification.show('Failed to generate trip plan. Please try again.', 'error');
+    } finally {
+        this.setLoading(false);
     }
+}
 
     // ===== TRAVEL INTELLIGENCE INSIGHTS =====
 
