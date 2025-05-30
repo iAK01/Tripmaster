@@ -1440,33 +1440,6 @@ updatePackingProgress() {
    };
 }
 
-function safeStringify(obj, space = null) {
-    const seen = new WeakSet();
-    return JSON.stringify(obj, (key, value) => {
-        // Skip known circular reference keys
-        if (key === 'currentTrip' || key === 'parentTrip' || key === 'tripReference' || 
-            key === 'userProfile' || key === 'profile' || key === 'trip') {
-            return undefined;
-        }
-        
-        if (typeof value === 'object' && value !== null) {
-            if (seen.has(value)) {
-                return '[Circular Reference]';
-            }
-            seen.add(value);
-        }
-        return value;
-    }, space);
-}
-
-// Override JSON.stringify globally for this app
-const originalStringify = JSON.stringify;
-JSON.stringify = function(value, replacer, space) {
-    if (arguments.length === 1 || (arguments.length === 2 && replacer === null)) {
-        return safeStringify(value, space);
-    }
-    return originalStringify.apply(this, arguments);
-};
 
 // ===== UTILITY METHODS (UNIFIED MODEL) =====
 
@@ -1840,6 +1813,35 @@ determineInitialTab() {
    }
 }
 }
+
+
+function safeStringify(obj, space = null) {
+    const seen = new WeakSet();
+    return JSON.stringify(obj, (key, value) => {
+        // Skip known circular reference keys
+        if (key === 'currentTrip' || key === 'parentTrip' || key === 'tripReference' || 
+            key === 'userProfile' || key === 'profile' || key === 'trip') {
+            return undefined;
+        }
+        
+        if (typeof value === 'object' && value !== null) {
+            if (seen.has(value)) {
+                return '[Circular Reference]';
+            }
+            seen.add(value);
+        }
+        return value;
+    }, space);
+}
+
+// Override JSON.stringify globally for this app
+const originalStringify = JSON.stringify;
+JSON.stringify = function(value, replacer, space) {
+    if (arguments.length === 1 || (arguments.length === 2 && replacer === null)) {
+        return safeStringify(value, space);
+    }
+    return originalStringify.apply(this, arguments);
+};
 
 // ===== INITIALIZATION & ERROR HANDLING =====
 
