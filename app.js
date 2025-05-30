@@ -268,15 +268,15 @@ class TripMaster {
             // Store transportation and accommodation in logistics
             if (tripData.transportation && tripData.transportation.length > 0) {
                 // For now, store in a way that's compatible with the list generator
-                this.state.trip.logistics.transportation = tripData.transportation;
+                this.state.trip.logistics.transportation = tripData.transportation || [];
                 // Also keep for backward compatibility with components expecting simple format
-                this.state.trip.transportation = tripData.transportation;
+                this.state.trip.transportation = tripData.transportation || [];
             }
             
             if (tripData.accommodation && tripData.accommodation.length > 0) {
-                this.state.trip.logistics.accommodationType = tripData.accommodation;
+                this.state.trip.logistics.accommodationType = tripData.accommodation || [];
                 // Also keep for backward compatibility
-                this.state.trip.accommodation = tripData.accommodation;
+                this.state.trip.accommodation = tripData.accommodation || [];
             }
 
             // Store activities and options
