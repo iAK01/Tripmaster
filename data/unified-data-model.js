@@ -674,3 +674,5 @@ export const DataMigration = {
     return !trip.meta || !trip.meta.version || trip.meta.version !== this.getCurrentVersion();
   }
 };
+
+export { generateTripId };
