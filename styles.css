@@ -3875,3 +3875,177 @@ select {
 .achievement-notification.hide {
    transform: translateX(-50%) translateY(-100px);
 }
+
+/* Add these styles to your existing styles.css file */
+
+/* Overview Section Styles */
+.overview-content {
+    padding: 20px;
+    color: #333;
+    background: transparent;
+}
+
+.overview-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.overview-header h2 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 2.2em;
+}
+
+.overview-header p {
+    color: #6c757d;
+    font-size: 1.1em;
+}
+
+.trip-summary-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin: 20px 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+}
+
+.trip-summary-card h3 {
+    color: #495057;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.trip-basic-details p {
+    margin-bottom: 10px;
+    color: #495057;
+    font-size: 1.05em;
+}
+
+.trip-activities {
+    margin-top: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    color: #495057;
+}
+
+.getting-started-card {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    margin: 20px 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    text-align: center;
+    border: 1px solid #e9ecef;
+}
+
+.getting-started-card h3 {
+    color: #495057;
+    margin-bottom: 15px;
+}
+
+.getting-started-card p {
+    color: #6c757d;
+    margin-bottom: 15px;
+}
+
+/* Travel Intelligence Styles */
+.travel-intelligence-section {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin: 20px 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+}
+
+.travel-intelligence-section h3 {
+    color: #495057;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.intelligence-insights {
+    display: grid;
+    gap: 15px;
+}
+
+.insight-card {
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-left: 4px solid;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.insight-card.success {
+    border-left-color: #28a745;
+    background: #f8fff9;
+}
+
+.insight-card.warning {
+    border-left-color: #ffc107;
+    background: #fffef8;
+}
+
+.insight-card.info {
+    border-left-color: #17a2b8;
+    background: #f8fcfd;
+}
+
+.insight-icon {
+    font-size: 1.5em;
+    flex-shrink: 0;
+}
+
+.insight-text {
+    color: #495057;
+    font-size: 1.05em;
+    line-height: 1.4;
+}
+
+/* Loading State Fix */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.loading-overlay.hidden {
+    display: none;
+}
+
+.loading-spinner {
+    text-align: center;
+    color: #495057;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #4facfe;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
