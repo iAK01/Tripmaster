@@ -440,6 +440,7 @@ export const countriesDatabase = {
   drivingSide: 'right',
   electricalPlug: 'A/B/C'
 }
+}
 
   // Helper functions
   getCountryByCode(code) {
