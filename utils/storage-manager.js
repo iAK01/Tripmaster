@@ -14,44 +14,47 @@ export class StorageManager {
 
     // ===== CURRENT TRIP OPERATIONS =====
     
-    saveTrip(tripData) {
-        try {
-            // NEW: Ensure itinerary structure exists
-            const dataToSave = {
-                ...tripData,
-                // Ensure itinerary structure is present
-                itinerary: {
-                    days: [],
-                    progress: {
-                        completedStops: [],
-                        personalNotes: {},
-                        openDays: [],
-                        lastVisited: null
-                    },
-                    ...tripData.itinerary
+saveTrip(tripData) {
+    try {
+        // FIX: Ensure we preserve ALL trip data, especially arrays
+        const dataToSave = {
+            ...tripData, // This should preserve transportation/accommodation arrays
+            // Ensure itinerary structure exists
+            itinerary: {
+                days: [],
+                progress: {
+                    completedStops: [],
+                    personalNotes: {},
+                    openDays: [],
+                    lastVisited: null
                 },
-                meta: {
-                    ...tripData.meta,
-                    version: '2.0', // NEW: Updated version for Phase 2
-                    lastModified: new Date().toISOString(),
-                    dataSize: JSON.stringify(tripData).length,
-                    hasItinerary: !!(tripData.itinerary && tripData.itinerary.days && tripData.itinerary.days.length > 0),
-                    hasPacking: !!(tripData.items && Object.keys(tripData.items).length > 0)
-                }
-            };
-            
-            localStorage.setItem(this.CURRENT_TRIP_KEY, JSON.stringify(dataToSave));
-            
-            // Also save backup in case of corruption
-            this.saveBackup(dataToSave);
-            
-            return true;
-        } catch (error) {
-            console.error('Failed to save trip:', error);
-            this.handleStorageError(error);
-            return false;
-        }
+                ...tripData.itinerary
+            },
+            meta: {
+                ...tripData.meta,
+                version: '2.0',
+                lastModified: new Date().toISOString(),
+                dataSize: JSON.stringify(tripData).length,
+                hasItinerary: !!(tripData.itinerary && tripData.itinerary.days && tripData.itinerary.days.length > 0),
+                hasPacking: !!(tripData.items && Object.keys(tripData.items).length > 0)
+            }
+        };
+        
+        // DEBUG: Log what we're about to save
+        console.log('About to save transportation:', dataToSave.transportation);
+        
+        localStorage.setItem(this.CURRENT_TRIP_KEY, JSON.stringify(dataToSave));
+        
+        // Also save backup in case of corruption
+        this.saveBackup(dataToSave);
+        
+        return true;
+    } catch (error) {
+        console.error('Failed to save trip:', error);
+        this.handleStorageError(error);
+        return false;
     }
+}
 
     getCurrentTrip() {
         try {
