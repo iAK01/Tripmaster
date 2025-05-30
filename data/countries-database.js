@@ -1,6 +1,6 @@
-// data/countries-database.js - Country dropdown and metadata
+// data/countries-database.js - Complete Country dropdown and metadata
 export const countriesDatabase = {
-  // Main dropdown list - ~50 major travel destinations
+  // Main dropdown list - ~59 major travel destinations
   dropdownList: [
     // Europe (Major destinations)
     { code: 'AT', name: 'Austria', region: 'Europe' },
@@ -72,9 +72,9 @@ export const countriesDatabase = {
     { code: 'PE', name: 'Peru', region: 'South America' }
   ],
 
-  // Country metadata for enhanced functionality
+  // Country metadata for enhanced functionality - ALL COUNTRIES
   countryMetadata: {
-    // European countries
+    // ===== EUROPE - COMPLETE =====
     'AT': {
       timezone: 'Europe/Vienna',
       currency: 'EUR',
@@ -88,10 +88,64 @@ export const countriesDatabase = {
       timezone: 'Europe/Brussels',
       currency: 'EUR',
       currencySymbol: '€',
-      language: 'Dutch/French',
+      language: 'Dutch/French/German',
       emergency: '112',
       drivingSide: 'right',
       electricalPlug: 'C/E'
+    },
+    'BG': {
+      timezone: 'Europe/Sofia',
+      currency: 'BGN',
+      currencySymbol: 'лв',
+      language: 'Bulgarian',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
+    },
+    'HR': {
+      timezone: 'Europe/Zagreb',
+      currency: 'EUR',
+      currencySymbol: '€',
+      language: 'Croatian',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
+    },
+    'CZ': {
+      timezone: 'Europe/Prague',
+      currency: 'CZK',
+      currencySymbol: 'Kč',
+      language: 'Czech',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/E'
+    },
+    'DK': {
+      timezone: 'Europe/Copenhagen',
+      currency: 'DKK',
+      currencySymbol: 'kr',
+      language: 'Danish',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/E/F/K'
+    },
+    'EE': {
+      timezone: 'Europe/Tallinn',
+      currency: 'EUR',
+      currencySymbol: '€',
+      language: 'Estonian',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
+    },
+    'FI': {
+      timezone: 'Europe/Helsinki',
+      currency: 'EUR',
+      currencySymbol: '€',
+      language: 'Finnish',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
     },
     'FR': {
       timezone: 'Europe/Paris',
@@ -120,6 +174,33 @@ export const countriesDatabase = {
       drivingSide: 'right',
       electricalPlug: 'C/F'
     },
+    'HU': {
+      timezone: 'Europe/Budapest',
+      currency: 'HUF',
+      currencySymbol: 'Ft',
+      language: 'Hungarian',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
+    },
+    'IS': {
+      timezone: 'Atlantic/Reykjavik',
+      currency: 'ISK',
+      currencySymbol: 'kr',
+      language: 'Icelandic',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
+    },
+    'IE': {
+      timezone: 'Europe/Dublin',
+      currency: 'EUR',
+      currencySymbol: '€',
+      language: 'English',
+      emergency: '999',
+      drivingSide: 'left',
+      electricalPlug: 'G'
+    },
     'IT': {
       timezone: 'Europe/Rome',
       currency: 'EUR',
@@ -128,6 +209,105 @@ export const countriesDatabase = {
       emergency: '112',
       drivingSide: 'right',
       electricalPlug: 'C/F/L'
+    },
+    'LV': {
+      timezone: 'Europe/Riga',
+      currency: 'EUR',
+      currencySymbol: '€',
+      language: 'Latvian',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
+    },
+    'LT': {
+      timezone: 'Europe/Vilnius',
+      currency: 'EUR',
+      currencySymbol: '€',
+      language: 'Lithuanian',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
+    },
+    'LU': {
+      timezone: 'Europe/Luxembourg',
+      currency: 'EUR',
+      currencySymbol: '€',
+      language: 'Luxembourgish/French/German',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
+    },
+    'MT': {
+      timezone: 'Europe/Malta',
+      currency: 'EUR',
+      currencySymbol: '€',
+      language: 'Maltese/English',
+      emergency: '112',
+      drivingSide: 'left',
+      electricalPlug: 'G'
+    },
+    'NL': {
+      timezone: 'Europe/Amsterdam',
+      currency: 'EUR',
+      currencySymbol: '€',
+      language: 'Dutch',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
+    },
+    'NO': {
+      timezone: 'Europe/Oslo',
+      currency: 'NOK',
+      currencySymbol: 'kr',
+      language: 'Norwegian',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
+    },
+    'PL': {
+      timezone: 'Europe/Warsaw',
+      currency: 'PLN',
+      currencySymbol: 'zł',
+      language: 'Polish',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/E'
+    },
+    'PT': {
+      timezone: 'Europe/Lisbon',
+      currency: 'EUR',
+      currencySymbol: '€',
+      language: 'Portuguese',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
+    },
+    'RO': {
+      timezone: 'Europe/Bucharest',
+      currency: 'RON',
+      currencySymbol: 'lei',
+      language: 'Romanian',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
+    },
+    'SK': {
+      timezone: 'Europe/Bratislava',
+      currency: 'EUR',
+      currencySymbol: '€',
+      language: 'Slovak',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/E'
+    },
+    'SI': {
+      timezone: 'Europe/Ljubljana',
+      currency: 'EUR',
+      currencySymbol: '€',
+      language: 'Slovenian',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
     },
     'ES': {
       timezone: 'Europe/Madrid',
@@ -138,29 +318,11 @@ export const countriesDatabase = {
       drivingSide: 'right',
       electricalPlug: 'C/F'
     },
-    'GB': {
-      timezone: 'Europe/London',
-      currency: 'GBP',
-      currencySymbol: '£',
-      language: 'English',
-      emergency: '999',
-      drivingSide: 'left',
-      electricalPlug: 'G'
-    },
-    'IE': {
-  timezone: 'Europe/Dublin',
-  currency: 'EUR',
-  currencySymbol: '€',
-  language: 'English',
-  emergency: '999',
-  drivingSide: 'left',
-  electricalPlug: 'G'
-},
-    'NL': {
-      timezone: 'Europe/Amsterdam',
-      currency: 'EUR',
-      currencySymbol: '€',
-      language: 'Dutch',
+    'SE': {
+      timezone: 'Europe/Stockholm',
+      currency: 'SEK',
+      currencySymbol: 'kr',
+      language: 'Swedish',
       emergency: '112',
       drivingSide: 'right',
       electricalPlug: 'C/F'
@@ -174,19 +336,19 @@ export const countriesDatabase = {
       drivingSide: 'right',
       electricalPlug: 'C/J'
     },
-    
-    // North America
-    'US': {
-      timezone: 'America/New_York', // Default - varies by region
-      currency: 'USD',
-      currencySymbol: '$',
+    'GB': {
+      timezone: 'Europe/London',
+      currency: 'GBP',
+      currencySymbol: '£',
       language: 'English',
-      emergency: '911',
-      drivingSide: 'right',
-      electricalPlug: 'A/B'
+      emergency: '999',
+      drivingSide: 'left',
+      electricalPlug: 'G'
     },
+    
+    // ===== NORTH AMERICA - COMPLETE =====
     'CA': {
-      timezone: 'America/Toronto', // Default - varies by region  
+      timezone: 'America/Toronto',
       currency: 'CAD',
       currencySymbol: 'C$',
       language: 'English/French',
@@ -203,8 +365,62 @@ export const countriesDatabase = {
       drivingSide: 'right',
       electricalPlug: 'A/B'
     },
+    'US': {
+      timezone: 'America/New_York',
+      currency: 'USD',
+      currencySymbol: '$',
+      language: 'English',
+      emergency: '911',
+      drivingSide: 'right',
+      electricalPlug: 'A/B'
+    },
     
-    // Asia Pacific
+    // ===== ASIA PACIFIC - COMPLETE =====
+    'AU': {
+      timezone: 'Australia/Sydney',
+      currency: 'AUD',
+      currencySymbol: 'A$',
+      language: 'English',
+      emergency: '000',
+      drivingSide: 'left',
+      electricalPlug: 'I'
+    },
+    'CN': {
+      timezone: 'Asia/Shanghai',
+      currency: 'CNY',
+      currencySymbol: '¥',
+      language: 'Mandarin',
+      emergency: '110',
+      drivingSide: 'right',
+      electricalPlug: 'A/C/I'
+    },
+    'HK': {
+      timezone: 'Asia/Hong_Kong',
+      currency: 'HKD',
+      currencySymbol: 'HK$',
+      language: 'Cantonese/English',
+      emergency: '999',
+      drivingSide: 'left',
+      electricalPlug: 'G'
+    },
+    'IN': {
+      timezone: 'Asia/Kolkata',
+      currency: 'INR',
+      currencySymbol: '₹',
+      language: 'Hindi/English',
+      emergency: '112',
+      drivingSide: 'left',
+      electricalPlug: 'C/D/M'
+    },
+    'ID': {
+      timezone: 'Asia/Jakarta',
+      currency: 'IDR',
+      currencySymbol: 'Rp',
+      language: 'Indonesian',
+      emergency: '112',
+      drivingSide: 'left',
+      electricalPlug: 'C/F'
+    },
     'JP': {
       timezone: 'Asia/Tokyo',
       currency: 'JPY',
@@ -214,14 +430,32 @@ export const countriesDatabase = {
       drivingSide: 'left',
       electricalPlug: 'A/B'
     },
-    'AU': {
-      timezone: 'Australia/Sydney', // Default - varies by region
-      currency: 'AUD',
-      currencySymbol: 'A$',
+    'MY': {
+      timezone: 'Asia/Kuala_Lumpur',
+      currency: 'MYR',
+      currencySymbol: 'RM',
+      language: 'Malay/English',
+      emergency: '999',
+      drivingSide: 'left',
+      electricalPlug: 'G'
+    },
+    'NZ': {
+      timezone: 'Pacific/Auckland',
+      currency: 'NZD',
+      currencySymbol: 'NZ$',
       language: 'English',
-      emergency: '000',
+      emergency: '111',
       drivingSide: 'left',
       electricalPlug: 'I'
+    },
+    'PH': {
+      timezone: 'Asia/Manila',
+      currency: 'PHP',
+      currencySymbol: '₱',
+      language: 'Filipino/English',
+      emergency: '117',
+      drivingSide: 'right',
+      electricalPlug: 'A/B/C'
     },
     'SG': {
       timezone: 'Asia/Singapore',
@@ -232,6 +466,24 @@ export const countriesDatabase = {
       drivingSide: 'left',
       electricalPlug: 'G'
     },
+    'KR': {
+      timezone: 'Asia/Seoul',
+      currency: 'KRW',
+      currencySymbol: '₩',
+      language: 'Korean',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
+    },
+    'TW': {
+      timezone: 'Asia/Taipei',
+      currency: 'TWD',
+      currencySymbol: 'NT$',
+      language: 'Mandarin',
+      emergency: '110',
+      drivingSide: 'right',
+      electricalPlug: 'A/B'
+    },
     'TH': {
       timezone: 'Asia/Bangkok',
       currency: 'THB',
@@ -240,207 +492,129 @@ export const countriesDatabase = {
       emergency: '191',
       drivingSide: 'left',
       electricalPlug: 'A/B/C'
+    },
+    'VN': {
+      timezone: 'Asia/Ho_Chi_Minh',
+      currency: 'VND',
+      currencySymbol: '₫',
+      language: 'Vietnamese',
+      emergency: '113',
+      drivingSide: 'right',
+      electricalPlug: 'A/C/G'
+    },
+    
+    // ===== MIDDLE EAST & AFRICA - COMPLETE =====
+    'EG': {
+      timezone: 'Africa/Cairo',
+      currency: 'EGP',
+      currencySymbol: '£',
+      language: 'Arabic',
+      emergency: '122',
+      drivingSide: 'right',
+      electricalPlug: 'C/F'
+    },
+    'IL': {
+      timezone: 'Asia/Jerusalem',
+      currency: 'ILS',
+      currencySymbol: '₪',
+      language: 'Hebrew/Arabic',
+      emergency: '112',
+      drivingSide: 'right',
+      electricalPlug: 'C/H/M'
+    },
+    'JO': {
+      timezone: 'Asia/Amman',
+      currency: 'JOD',
+      currencySymbol: 'د.ا',
+      language: 'Arabic',
+      emergency: '911',
+      drivingSide: 'right',
+      electricalPlug: 'B/C/D/F/G/J'
+    },
+    'KE': {
+      timezone: 'Africa/Nairobi',
+      currency: 'KES',
+      currencySymbol: 'Sh',
+      language: 'Swahili/English',
+      emergency: '999',
+      drivingSide: 'left',
+      electricalPlug: 'G'
+    },
+    'MA': {
+      timezone: 'Africa/Casablanca',
+      currency: 'MAD',
+      currencySymbol: 'د.م.',
+      language: 'Arabic/French',
+      emergency: '15',
+      drivingSide: 'right',
+      electricalPlug: 'C/E'
+    },
+    'ZA': {
+      timezone: 'Africa/Johannesburg',
+      currency: 'ZAR',
+      currencySymbol: 'R',
+      language: 'English/Afrikaans',
+      emergency: '10111',
+      drivingSide: 'left',
+      electricalPlug: 'C/D/M/N'
+    },
+    'AE': {
+      timezone: 'Asia/Dubai',
+      currency: 'AED',
+      currencySymbol: 'د.إ',
+      language: 'Arabic/English',
+      emergency: '999',
+      drivingSide: 'right',
+      electricalPlug: 'C/D/G'
+    },
+    
+    // ===== SOUTH AMERICA - COMPLETE =====
+    'AR': {
+      timezone: 'America/Buenos_Aires',
+      currency: 'ARS',
+      currencySymbol: '$',
+      language: 'Spanish',
+      emergency: '911',
+      drivingSide: 'right',
+      electricalPlug: 'C/I'
+    },
+    'BR': {
+      timezone: 'America/Sao_Paulo',
+      currency: 'BRL',
+      currencySymbol: 'R$',
+      language: 'Portuguese',
+      emergency: '190',
+      drivingSide: 'right',
+      electricalPlug: 'C/N'
+    },
+    'CL': {
+      timezone: 'America/Santiago',
+      currency: 'CLP',
+      currencySymbol: '$',
+      language: 'Spanish',
+      emergency: '133',
+      drivingSide: 'right',
+      electricalPlug: 'C/L'
+    },
+    'CO': {
+      timezone: 'America/Bogota',
+      currency: 'COP',
+      currencySymbol: '$',
+      language: 'Spanish',
+      emergency: '123',
+      drivingSide: 'right',
+      electricalPlug: 'A/B'
+    },
+    'PE': {
+      timezone: 'America/Lima',
+      currency: 'PEN',
+      currencySymbol: 'S/',
+      language: 'Spanish',
+      emergency: '105',
+      drivingSide: 'right',
+      electricalPlug: 'A/B/C'
     }
   },
-  'CN': {
-  timezone: 'Asia/Shanghai',
-  currency: 'CNY',
-  currencySymbol: '¥',
-  language: 'Mandarin',
-  emergency: '110',
-  drivingSide: 'right',
-  electricalPlug: 'A/C/I'
-},
-'HK': {
-  timezone: 'Asia/Hong_Kong', 
-  currency: 'HKD',
-  currencySymbol: 'HK$',
-  language: 'Cantonese/English',
-  emergency: '999',
-  drivingSide: 'left',
-  electricalPlug: 'G'
-},
-'IN': {
-  timezone: 'Asia/Kolkata',
-  currency: 'INR',
-  currencySymbol: '₹',
-  language: 'Hindi/English',
-  emergency: '112',
-  drivingSide: 'left',
-  electricalPlug: 'C/D/M'
-},
-'ID': {
-  timezone: 'Asia/Jakarta',
-  currency: 'IDR',
-  currencySymbol: 'Rp',
-  language: 'Indonesian',
-  emergency: '112',
-  drivingSide: 'left',
-  electricalPlug: 'C/F'
-},
-'MY': {
-  timezone: 'Asia/Kuala_Lumpur',
-  currency: 'MYR',
-  currencySymbol: 'RM',
-  language: 'Malay/English',
-  emergency: '999',
-  drivingSide: 'left',
-  electricalPlug: 'G'
-},
-'NZ': {
-  timezone: 'Pacific/Auckland',
-  currency: 'NZD',
-  currencySymbol: 'NZ$',
-  language: 'English',
-  emergency: '111',
-  drivingSide: 'left',
-  electricalPlug: 'I'
-},
-'PH': {
-  timezone: 'Asia/Manila',
-  currency: 'PHP',
-  currencySymbol: '₱',
-  language: 'Filipino/English',
-  emergency: '117',
-  drivingSide: 'right',
-  electricalPlug: 'A/B/C'
-},
-'KR': {
-  timezone: 'Asia/Seoul',
-  currency: 'KRW',
-  currencySymbol: '₩',
-  language: 'Korean',
-  emergency: '112',
-  drivingSide: 'right',
-  electricalPlug: 'C/F'
-},
-'TW': {
-  timezone: 'Asia/Taipei',
-  currency: 'TWD',
-  currencySymbol: 'NT$',
-  language: 'Mandarin',
-  emergency: '110',
-  drivingSide: 'right',
-  electricalPlug: 'A/B'
-},
-'VN': {
-  timezone: 'Asia/Ho_Chi_Minh',
-  currency: 'VND',
-  currencySymbol: '₫',
-  language: 'Vietnamese',
-  emergency: '113',
-  drivingSide: 'right',
-  electricalPlug: 'A/C/G'
-},
-  'EG': {
-  timezone: 'Africa/Cairo',
-  currency: 'EGP',
-  currencySymbol: '£',
-  language: 'Arabic',
-  emergency: '122',
-  drivingSide: 'right',
-  electricalPlug: 'C/F'
-},
-'IL': {
-  timezone: 'Asia/Jerusalem',
-  currency: 'ILS',
-  currencySymbol: '₪',
-  language: 'Hebrew/Arabic',
-  emergency: '112',
-  drivingSide: 'right',
-  electricalPlug: 'C/H/M'
-},
-'JO': {
-  timezone: 'Asia/Amman',
-  currency: 'JOD',
-  currencySymbol: 'د.ا',
-  language: 'Arabic',
-  emergency: '911',
-  drivingSide: 'right',
-  electricalPlug: 'B/C/D/F/G/J'
-},
-'KE': {
-  timezone: 'Africa/Nairobi',
-  currency: 'KES',
-  currencySymbol: 'Sh',
-  language: 'Swahili/English',
-  emergency: '999',
-  drivingSide: 'left',
-  electricalPlug: 'G'
-},
-'MA': {
-  timezone: 'Africa/Casablanca',
-  currency: 'MAD',
-  currencySymbol: 'د.م.',
-  language: 'Arabic/French',
-  emergency: '15',
-  drivingSide: 'right',
-  electricalPlug: 'C/E'
-},
-'ZA': {
-  timezone: 'Africa/Johannesburg',
-  currency: 'ZAR',
-  currencySymbol: 'R',
-  language: 'English/Afrikaans',
-  emergency: '10111',
-  drivingSide: 'left',
-  electricalPlug: 'C/D/M/N'
-},
-'AE': {
-  timezone: 'Asia/Dubai',
-  currency: 'AED',
-  currencySymbol: 'د.إ',
-  language: 'Arabic/English',
-  emergency: '999',
-  drivingSide: 'right',
-  electricalPlug: 'C/D/G'
-},
-  'AR': {
-  timezone: 'America/Buenos_Aires',
-  currency: 'ARS',
-  currencySymbol: '$',
-  language: 'Spanish',
-  emergency: '911',
-  drivingSide: 'right',
-  electricalPlug: 'C/I'
-},
-'BR': {
-  timezone: 'America/Sao_Paulo',
-  currency: 'BRL',
-  currencySymbol: 'R$',
-  language: 'Portuguese',
-  emergency: '190',
-  drivingSide: 'right',
-  electricalPlug: 'C/N'
-},
-'CL': {
-  timezone: 'America/Santiago',
-  currency: 'CLP',
-  currencySymbol: '$',
-  language: 'Spanish',
-  emergency: '133',
-  drivingSide: 'right',
-  electricalPlug: 'C/L'
-},
-'CO': {
-  timezone: 'America/Bogota',
-  currency: 'COP',
-  currencySymbol: '$',
-  language: 'Spanish',
-  emergency: '123',
-  drivingSide: 'right',
-  electricalPlug: 'A/B'
-},
-'PE': {
-  timezone: 'America/Lima',
-  currency: 'PEN',
-  currencySymbol: 'S/',
-  language: 'Spanish',
-  emergency: '105',
-  drivingSide: 'right',
-  electricalPlug: 'A/B/C'
-}
-}
 
   // Helper functions
   getCountryByCode(code) {
