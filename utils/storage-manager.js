@@ -26,12 +26,42 @@ safeStringifyLength(obj) {
 }
 
     // ===== CURRENT TRIP OPERATIONS =====
-    
+
 saveTrip(tripData) {
     try {
-        // FIX: Ensure we preserve ALL trip data, especially arrays
+        console.log('💾 StorageManager.saveTrip called with:', {
+            transportation: tripData.transportation,
+            accommodation: tripData.accommodation,
+            hasTransportation: !!tripData.transportation,
+            hasAccommodation: !!tripData.accommodation
+        });
+        
+        // FIX: Create a clean copy with all data preserved
         const dataToSave = {
-            ...tripData, // This should preserve transportation/accommodation arrays
+            // Spread all existing trip data
+            ...tripData,
+            
+            // EXPLICITLY preserve arrays - this is the key fix
+            transportation: Array.isArray(tripData.transportation) ? 
+                [...tripData.transportation] : 
+                (tripData.transportation ? [tripData.transportation] : []),
+            
+            accommodation: Array.isArray(tripData.accommodation) ? 
+                [...tripData.accommodation] : 
+                (tripData.accommodation ? [tripData.accommodation] : []),
+            
+            activities: Array.isArray(tripData.activities) ? 
+                [...tripData.activities] : 
+                (tripData.activities || []),
+            
+            transportationOptions: Array.isArray(tripData.transportationOptions) ? 
+                [...tripData.transportationOptions] : 
+                (tripData.transportationOptions || []),
+            
+            accommodationOptions: Array.isArray(tripData.accommodationOptions) ? 
+                [...tripData.accommodationOptions] : 
+                (tripData.accommodationOptions || []),
+            
             // Ensure itinerary structure exists
             itinerary: {
                 days: [],
@@ -41,22 +71,39 @@ saveTrip(tripData) {
                     openDays: [],
                     lastVisited: null
                 },
-                ...tripData.itinerary
+                ...(tripData.itinerary || {})
             },
+            
+            // Update metadata
             meta: {
-                ...tripData.meta,
+                ...(tripData.meta || {}),
                 version: '2.0',
                 lastModified: new Date().toISOString(),
                 dataSize: this.safeStringifyLength(tripData),
                 hasItinerary: !!(tripData.itinerary && tripData.itinerary.days && tripData.itinerary.days.length > 0),
-                hasPacking: !!(tripData.items && Object.keys(tripData.items).length > 0)
+                hasPacking: !!(tripData.items && Object.keys(tripData.items).length > 0),
+                hasTransportation: !!(tripData.transportation && tripData.transportation.length > 0),
+                hasAccommodation: !!(tripData.accommodation && tripData.accommodation.length > 0)
             }
         };
         
-        // DEBUG: Log what we're about to save
-        console.log('About to save transportation:', dataToSave.transportation);
+        console.log('💾 About to save to localStorage:', {
+            transportation: dataToSave.transportation,
+            accommodation: dataToSave.accommodation,
+            transportationLength: dataToSave.transportation?.length,
+            accommodationLength: dataToSave.accommodation?.length
+        });
         
+        // Save to localStorage
         localStorage.setItem(this.CURRENT_TRIP_KEY, JSON.stringify(dataToSave));
+        
+        // Verify save
+        const saved = localStorage.getItem(this.CURRENT_TRIP_KEY);
+        const parsed = JSON.parse(saved);
+        console.log('✅ Verified save:', {
+            transportation: parsed.transportation,
+            accommodation: parsed.accommodation
+        });
         
         // Also save backup in case of corruption
         this.saveBackup(dataToSave);
@@ -68,7 +115,7 @@ saveTrip(tripData) {
         return false;
     }
 }
-
+    
     getCurrentTrip() {
         try {
             const saved = localStorage.getItem(this.CURRENT_TRIP_KEY);
