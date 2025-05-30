@@ -1388,121 +1388,123 @@ updatePackingComponents() {
         }
     }
 
-    // ===== LOAD SAVED STATE =====
+
+// ===== LOAD SAVED STATE =====
     
-async loadSavedState() {
-    console.log('🔄 Loading saved state...');
-    
-    try {
-        const savedTrip = this.storage.getCurrentTrip();
+    async loadSavedState() {
+        console.log('🔄 Loading saved state...');
         
-        if (savedTrip) {
-            console.log('📂 Found saved trip data:', savedTrip.location);
+        try {
+            const savedTrip = this.storage.getCurrentTrip();
             
-            this.state.trip = { ...savedTrip };
-            
-            if (!this.state.trip.userProfile && this.userProfile) {
-                this.state.trip.userProfile = this.userProfile;
-                this.state.trip.homeLocation = `${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}`;
-            }
-            
-            if (this.tripSetup && this.tripSetup.loadTripData) {
-                console.log('📝 Restoring trip setup form...');
-                this.tripSetup.loadTripData(this.state.trip);
-            }
-            
-            if (this.state.trip.weather && this.state.trip.weather.length > 0) {
-                console.log('🌤️ Restoring weather data...');
-                this.weatherDisplay.displayWeather(this.state.trip.weather);
-            }
-            
-            this.updateAllComponents();
-            
-            setTimeout(() => {
-                if (this.userProfile) {
-                    this.notification.show(`👋 Welcome back ${this.userProfile.name}! Restored your trip to ${this.state.trip.location}`, 'success', 3000);
-                } else {
-                    this.notification.show(`👋 Welcome back! Restored your trip to ${this.state.trip.location}`, 'success', 3000);
+            if (savedTrip) {
+                console.log('📂 Found saved trip data:', savedTrip.location);
+                
+                this.state.trip = { ...savedTrip };
+                
+                if (!this.state.trip.userProfile && this.userProfile) {
+                    this.state.trip.userProfile = this.userProfile;
+                    this.state.trip.homeLocation = `${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}`;
                 }
-            }, 1000);
+                
+                if (this.tripSetup && this.tripSetup.loadTripData) {
+                    console.log('📝 Restoring trip setup form...');
+                    this.tripSetup.loadTripData(this.state.trip);
+                }
+                
+                if (this.state.trip.weather && this.state.trip.weather.length > 0) {
+                    console.log('🌤️ Restoring weather data...');
+                    this.weatherDisplay.displayWeather(this.state.trip.weather);
+                }
+                
+                this.updateAllComponents();
+                
+                setTimeout(() => {
+                    if (this.userProfile) {
+                        this.notification.show(`👋 Welcome back ${this.userProfile.name}! Restored your trip to ${this.state.trip.location}`, 'success', 3000);
+                    } else {
+                        this.notification.show(`👋 Welcome back! Restored your trip to ${this.state.trip.location}`, 'success', 3000);
+                    }
+                }, 1000);
+                
+                this.determineInitialTab();
+                
+            } else {
+                console.log('📭 No saved trip found');
+                this.showInitialTab();
+            }
             
-            this.determineInitialTab();
-            
-        } else {
-            console.log('📭 No saved trip found');
+        } catch (error) {
+            console.error('❌ Failed to load saved state:', error);
+            this.notification.show('Failed to restore previous data. Starting fresh.', 'warning', 3000);
             this.showInitialTab();
         }
+    } // <-- Missing closing brace was here
+    
+    determineInitialTab() {
+        const hasBasicTrip = this.state.trip.location && this.state.trip.nights;
+        const hasPackingList = this.state.trip.items && Object.keys(this.state.trip.items).length > 0;
+        const hasItinerary = this.state.trip.itinerary && this.state.trip.itinerary.days && this.state.trip.itinerary.days.length > 0;
         
-    } catch (error) {
-        console.error('❌ Failed to load saved state:', error);
-        this.notification.show('Failed to restore previous data. Starting fresh.', 'warning', 3000);
-        this.showInitialTab();
+        if (hasItinerary) {
+            setTimeout(() => this.navigation.switchTab('itinerary'), 500);
+        } else if (hasPackingList) {
+            setTimeout(() => this.navigation.switchTab('packing'), 500);
+        } else if (hasBasicTrip) {
+            setTimeout(() => this.navigation.switchTab('setup'), 500);
+        } else {
+            this.navigation.switchTab('overview');
+        }
     }
-    
-determineInitialTab() {
-    const hasBasicTrip = this.state.trip.location && this.state.trip.nights;
-    const hasPackingList = this.state.trip.items && Object.keys(this.state.trip.items).length > 0;
-    const hasItinerary = this.state.trip.itinerary && this.state.trip.itinerary.days && this.state.trip.itinerary.days.length > 0;
-    
-    if (hasItinerary) {
-        setTimeout(() => this.navigation.switchTab('itinerary'), 500);
-    } else if (hasPackingList) {
-        setTimeout(() => this.navigation.switchTab('packing'), 500);
-    } else if (hasBasicTrip) {
-        setTimeout(() => this.navigation.switchTab('setup'), 500);
-    } else {
-        this.navigation.switchTab('overview');
-    }
-}
 
-// ADD this new method
-setupEnhancedAutoSave() {
-    let autoSaveTimeout;
-    
-    const triggerAutoSave = (source = 'unknown') => {
-        clearTimeout(autoSaveTimeout);
+    // ADD this new method
+    setupEnhancedAutoSave() {
+        let autoSaveTimeout;
         
-        autoSaveTimeout = setTimeout(() => {
-            if (this.state.trip.location || Object.keys(this.state.trip.items).length > 0) {
-                try {
-                    this.state.trip.meta = {
-                        ...this.state.trip.meta,
-                        lastModified: new Date().toISOString(),
-                        autoSaveSource: source
-                    };
-                    
-                    this.storage.saveTrip(this.state.trip);
-                    console.log(`💾 Auto-saved (${source}) at ${new Date().toLocaleTimeString()}`);
-                    document.title = `🧳 TripMaster - ${this.state.trip.location || 'Trip Planning'} (Saved)`;
-                    
-                } catch (error) {
-                    console.error('❌ Auto-save failed:', error);
-                    this.notification.show('Auto-save failed - please save manually', 'warning', 2000);
+        const triggerAutoSave = (source = 'unknown') => {
+            clearTimeout(autoSaveTimeout);
+            
+            autoSaveTimeout = setTimeout(() => {
+                if (this.state.trip.location || Object.keys(this.state.trip.items).length > 0) {
+                    try {
+                        this.state.trip.meta = {
+                            ...this.state.trip.meta,
+                            lastModified: new Date().toISOString(),
+                            autoSaveSource: source
+                        };
+                        
+                        this.storage.saveTrip(this.state.trip);
+                        console.log(`💾 Auto-saved (${source}) at ${new Date().toLocaleTimeString()}`);
+                        document.title = `🧳 TripMaster - ${this.state.trip.location || 'Trip Planning'} (Saved)`;
+                        
+                    } catch (error) {
+                        console.error('❌ Auto-save failed:', error);
+                        this.notification.show('Auto-save failed - please save manually', 'warning', 2000);
+                    }
                 }
-            }
-        }, 2000);
-    };
-    
-    const changeEvents = ['input', 'change', 'click'];
-    const targetSelectors = ['.trip-setup', '.checklist-display', '.itinerary-display', '.item-checkbox', '.completion-checkbox'];
-    
-    changeEvents.forEach(eventType => {
-        document.addEventListener(eventType, (e) => {
-            if (targetSelectors.some(selector => e.target.closest(selector))) {
-                this.state.hasUnsavedChanges = true;
-                triggerAutoSave(eventType);
+            }, 2000);
+        };
+        
+        const changeEvents = ['input', 'change', 'click'];
+        const targetSelectors = ['.trip-setup', '.checklist-display', '.itinerary-display', '.item-checkbox', '.completion-checkbox'];
+        
+        changeEvents.forEach(eventType => {
+            document.addEventListener(eventType, (e) => {
+                if (targetSelectors.some(selector => e.target.closest(selector))) {
+                    this.state.hasUnsavedChanges = true;
+                    triggerAutoSave(eventType);
+                }
+            });
+        });
+        
+        window.addEventListener('beforeunload', (e) => {
+            if (this.state.hasUnsavedChanges) {
+                this.storage.saveTrip(this.state.trip);
             }
         });
-    });
-    
-    window.addEventListener('beforeunload', (e) => {
-        if (this.state.hasUnsavedChanges) {
-            this.storage.saveTrip(this.state.trip);
-        }
-    });
-    
-    console.log('✅ Enhanced auto-save system initialized');
-}
+        
+        console.log('✅ Enhanced auto-save system initialized');
+    }
 }
 
 // ===== INITIALIZATION =====
