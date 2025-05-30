@@ -591,10 +591,6 @@ function getWeatherPackingTips(tempDifference) {
   return tips;
 }
 
-// Helper function to generate unique trip ID
-function generateTripId() {
-  return 'trip_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
 
 // Validation helpers
 export const TripValidation = {
