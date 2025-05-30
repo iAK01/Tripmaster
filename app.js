@@ -1439,6 +1439,71 @@ async loadSavedState() {
     }
 }
 
+// ADD this new method
+determineInitialTab() {
+    const hasBasicTrip = this.state.trip.location && this.state.trip.nights;
+    const hasPackingList = this.state.trip.items && Object.keys(this.state.trip.items).length > 0;
+    const hasItinerary = this.state.trip.itinerary && this.state.trip.itinerary.days && this.state.trip.itinerary.days.length > 0;
+    
+    if (hasItinerary) {
+        setTimeout(() => this.navigation.switchTab('itinerary'), 500);
+    } else if (hasPackingList) {
+        setTimeout(() => this.navigation.switchTab('packing'), 500);
+    } else if (hasBasicTrip) {
+        setTimeout(() => this.navigation.switchTab('setup'), 500);
+    } else {
+        this.navigation.switchTab('overview');
+    }
+}
+
+// ADD this new method
+setupEnhancedAutoSave() {
+    let autoSaveTimeout;
+    
+    const triggerAutoSave = (source = 'unknown') => {
+        clearTimeout(autoSaveTimeout);
+        
+        autoSaveTimeout = setTimeout(() => {
+            if (this.state.trip.location || Object.keys(this.state.trip.items).length > 0) {
+                try {
+                    this.state.trip.meta = {
+                        ...this.state.trip.meta,
+                        lastModified: new Date().toISOString(),
+                        autoSaveSource: source
+                    };
+                    
+                    this.storage.saveTrip(this.state.trip);
+                    console.log(`💾 Auto-saved (${source}) at ${new Date().toLocaleTimeString()}`);
+                    document.title = `🧳 TripMaster - ${this.state.trip.location || 'Trip Planning'} (Saved)`;
+                    
+                } catch (error) {
+                    console.error('❌ Auto-save failed:', error);
+                    this.notification.show('Auto-save failed - please save manually', 'warning', 2000);
+                }
+            }
+        }, 2000);
+    };
+    
+    const changeEvents = ['input', 'change', 'click'];
+    const targetSelectors = ['.trip-setup', '.checklist-display', '.itinerary-display', '.item-checkbox', '.completion-checkbox'];
+    
+    changeEvents.forEach(eventType => {
+        document.addEventListener(eventType, (e) => {
+            if (targetSelectors.some(selector => e.target.closest(selector))) {
+                this.state.hasUnsavedChanges = true;
+                triggerAutoSave(eventType);
+            }
+        });
+    });
+    
+    window.addEventListener('beforeunload', (e) => {
+        if (this.state.hasUnsavedChanges) {
+            this.storage.saveTrip(this.state.trip);
+        }
+    });
+    
+    console.log('✅ Enhanced auto-save system initialized');
+}
 // ===== INITIALIZATION =====
 
 document.addEventListener('DOMContentLoaded', async () => {
