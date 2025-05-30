@@ -10,7 +10,7 @@ import { StorageManager } from './utils/storage-manager.js';
 import { ListGenerator } from './utils/list-generator.js';
 import { NotificationManager } from './utils/notification-manager.js';
 import { LocationService } from './utils/location-service.js';
-import { createNewTrip, createUserProfile, isProfileComplete, calculateTravelIntelligence } from './data/unified-data-model.js';
+import { createNewTrip, createUserProfile, isProfileComplete, calculateTravelIntelligence, generateTripId } from './data/unified-data-model.js';
 
 class TripMaster {
    constructor() {
