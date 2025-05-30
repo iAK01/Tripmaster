@@ -705,14 +705,16 @@ updatePackingComponents() {
     console.log('🔍 DEBUG: checklistDisplay exists?', !!this.checklistDisplay);
     console.log('🔍 DEBUG: checklistDisplay type:', typeof this.checklistDisplay);
     
-    if (Object.keys(this.state.trip.items).length > 0) {
+    // FIX: Add defensive check for items
+    const tripItems = this.state.trip.items || {};
+    
+    if (Object.keys(tripItems).length > 0) {
         if (this.checklistDisplay && typeof this.checklistDisplay.loadItems === 'function') {
-            this.checklistDisplay.loadItems(this.state.trip.items, this.state.trip.completedItems);
+            this.checklistDisplay.loadItems(tripItems, this.state.trip.completedItems || []);
         } else {
             console.error('❌ checklistDisplay or loadItems method missing');
         }
     }
-    
 }
 
     updateItineraryComponents() {
