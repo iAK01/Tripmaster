@@ -272,7 +272,7 @@ export class ListGenerator {
         }
 
         // Add items from database
-        const transportItems = this.itemsDB.transportation_specific[`${transportType}_items`];
+const transportItems = this.itemsDB.transportation_specific[`${transportType}_travel`];
         if (transportItems) {
             this.addItemsToCategory(
                 items,
