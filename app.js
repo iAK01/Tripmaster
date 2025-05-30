@@ -889,40 +889,65 @@ calculateOverallProgress() {
 // ===== SAVE & LOAD OPERATIONS (UNIFIED MODEL) =====
 
 async handleSave() {
-   const savedTrips = this.storage.getSavedTrips();
-   
-   // UNIFIED MODEL: Generate name from unified structure
-   const defaultName = this.generateTripName();
-   let tripName = prompt('Enter a name for this trip:', defaultName);
-   
-   if (!tripName) return;
+    const savedTrips = this.storage.getSavedTrips();
+    
+    // UNIFIED MODEL: Generate name from unified structure
+    const defaultName = this.generateTripName();
+    let tripName = prompt('Enter a name for this trip:', defaultName);
+    
+    if (!tripName) return;
 
-   // UNIFIED MODEL: Save the complete unified trip structure
-const tripToSave = JSON.parse(JSON.stringify(this.state.trip, (key, value) => {
-    // Remove ALL circular references
-    if (key === 'currentTrip' || key === 'parentTrip' || key === 'tripReference' || 
-        key === 'userProfile' || key === 'profile' || key === 'tripMaster') {
-        return undefined;
+    // UNIFIED MODEL: Create a clean copy without circular references
+    const tripToSave = JSON.parse(JSON.stringify(this.state.trip, (key, value) => {
+        // Remove ALL circular references and problematic keys
+        if (key === 'currentTrip' || key === 'parentTrip' || key === 'tripReference' || 
+            key === 'userProfile' || key === 'profile' || key === 'tripMaster' ||
+            key === '_trip' || key === '_parent' || key === '_state') {
+            return undefined;
+        }
+        
+        // Handle DOM elements or other non-serializable objects
+        if (value instanceof HTMLElement || value instanceof Window || 
+            value instanceof Document || typeof value === 'function') {
+            return undefined;
+        }
+        
+        return value;
+    }));
+
+    // Add metadata separately (without circular references)
+    tripToSave.meta = {
+        ...tripToSave.meta,
+        savedByUser: this.userProfile?.name || 'Anonymous',
+        savedFromLocation: this.userProfile?.homeLocation ? {
+            city: this.userProfile.homeLocation.city,
+            country: this.userProfile.homeLocation.country,
+            countryCode: this.userProfile.homeLocation.countryCode
+        } : null,
+        savedDate: new Date().toISOString(),
+        version: '2.1'
+    };
+
+    // If you need to preserve user profile info, add it as a simple object
+    if (this.userProfile) {
+        tripToSave.savedUserProfile = {
+            name: this.userProfile.name,
+            homeLocation: {
+                city: this.userProfile.homeLocation.city,
+                country: this.userProfile.homeLocation.country,
+                countryCode: this.userProfile.homeLocation.countryCode
+            }
+        };
     }
-    return value;
-}));
 
-tripToSave.meta = {
-    ...tripToSave.meta,
-    savedByUser: this.userProfile?.name || 'Anonymous',
-    savedFromLocation: this.userProfile?.homeLocation || null,
-    savedDate: new Date().toISOString(),
-    version: '2.1'
-};
-
-   const result = this.storage.saveTripToLibrary(tripName, tripToSave);
-   
-   if (result.success) {
-       const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
-       this.notification.show(`💾${userName}, trip "${tripName}" saved!`, 'success');
-   } else {
-       this.notification.show('Failed to save trip', 'error');
-   }
+    const result = this.storage.saveTripToLibrary(tripName, tripToSave);
+    
+    if (result.success) {
+        const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
+        this.notification.show(`💾${userName}, trip "${tripName}" saved!`, 'success');
+    } else {
+        this.notification.show('Failed to save trip', 'error');
+    }
 }
 
 async handleLoadTrip() {
