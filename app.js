@@ -13,41 +13,219 @@ import { LocationService } from './utils/location-service.js';
 import { createNewTrip, createUserProfile, isProfileComplete, calculateTravelIntelligence } from './data/unified-data-model.js';
 
 class TripMaster {
-    constructor() {
-        console.log('🚀 TripMaster initializing with Unified Data Model...');
-        
-        // UNIFIED MODEL STATE - using the proper structure
-        this.state = {
-            trip: createNewTrip(), // This creates the proper unified structure
-            activeTab: 'overview',
-            isLoading: false,
-            profileSetupComplete: false,
-            hasUnsavedChanges: false
-        };
+   constructor() {
+    console.log('🚀 TripMaster initializing with Unified Data Model...');
+    
+    // UNIFIED MODEL STATE - using the proper structure
+    this.state = {
+        trip: null, // Initialize as null first
+        activeTab: 'overview',
+        isLoading: false,
+        profileSetupComplete: false,
+        hasUnsavedChanges: false
+    };
 
-        // Core services
-        this.storage = new StorageManager();
-        this.listGenerator = new ListGenerator();
-        this.notification = new NotificationManager();
-        this.locationService = new LocationService();
+    // Core services
+    this.storage = new StorageManager();
+    this.listGenerator = new ListGenerator();
+    this.notification = new NotificationManager();
+    this.locationService = new LocationService();
+    
+    // User profile management
+    this.userProfile = null;
+    
+    // Initialize everything
+    try {
+        // Create a new trip AFTER services are initialized
+        this.state.trip = createNewTrip(); // This creates the proper unified structure
         
-        // User profile management
-        this.userProfile = null;
+        this.initializeUserProfile();
+        this.initializeComponents();
+        this.bindEvents();
+        this.loadSavedState();
+        this.setupEnhancedAutoSave();            
+        this.showInitialTab();
         
-        // Initialize everything
-        try {
-            this.initializeUserProfile();
-            this.initializeComponents();
-            this.bindEvents();
-            this.loadSavedState();
-            this.setupEnhancedAutoSave();            
-            this.showInitialTab();
-            
-            console.log('✅ TripMaster initialized successfully with Unified Model');
-        } catch (error) {
-            console.error('❌ TripMaster initialization failed:', error);
-        }
+        console.log('✅ TripMaster initialized successfully with Unified Model');
+    } catch (error) {
+        console.error('❌ TripMaster initialization failed:', error);
+        // If initialization fails, try to create a basic trip structure
+        this.state.trip = this.createEmergencyTrip();
     }
+}
+
+createEmergencyTrip() {
+    console.warn('Creating emergency trip structure...');
+    return {
+        tripInfo: {
+            id: 'emergency_' + Date.now(),
+            name: '',
+            origin: {
+                city: '',
+                country: '',
+                countryCode: '',
+                coordinates: { lat: null, lng: null },
+                timezone: '',
+                currency: '',
+                currencySymbol: '',
+                electricalPlug: '',
+                currentWeather: null
+            },
+            destination: {
+                city: '',
+                country: '',
+                countryCode: '',
+                coordinates: { lat: null, lng: null },
+                timezone: '',
+                currency: '',
+                currencySymbol: '',
+                language: '',
+                electricalPlug: '',
+                currentWeather: null
+            },
+            startDate: '',
+            endDate: '',
+            nights: 5,
+            tripType: 'leisure',
+            purpose: '',
+            notes: '',
+            created: new Date().toISOString(),
+            lastModified: new Date().toISOString()
+        },
+        userProfile: null,
+        itinerary: {
+            days: [],
+            progress: {
+                completedStops: [],
+                completedDays: [],
+                currentDay: null,
+                lastVisited: null,
+                milestones: {
+                    planningComplete: false,
+                    packingComplete: false,
+                    documentsReady: false,
+                    tripStarted: false,
+                    tripCompleted: false
+                }
+            }
+        },
+        packing: {
+            items: {},
+            progress: {
+                totalItems: 0,
+                completedItems: 0,
+                percentage: 0
+            },
+            generatedFrom: {
+                weather: false,
+                activities: false,
+                tripType: false,
+                duration: false,
+                destination: false
+            },
+            customCategories: {},
+            lastMinuteItems: []
+        },
+        weather: {
+            forecast: [],
+            lastUpdated: '',
+            affectedSchedule: [],
+            affectedPacking: [],
+            alerts: [],
+            recommendations: {
+                clothing: [],
+                activities: [],
+                timing: []
+            }
+        },
+        travelIntelligence: {},
+        quickReference: {
+            emergency: {
+                local: '112',
+                police: '',
+                medical: '',
+                embassy: '',
+                hotel: '',
+                nearestHospital: ''
+            },
+            language: {
+                code: '',
+                name: '',
+                localName: '',
+                essentialPhrases: []
+            },
+            money: {
+                currency: '',
+                symbol: '',
+                tipping: '',
+                paymentNotes: '',
+                commonDenominations: []
+            },
+            customs: [],
+            transport: {
+                metro: {
+                    cost: '',
+                    dayPass: '',
+                    notes: ''
+                },
+                taxi: {
+                    startingFare: '',
+                    perKm: '',
+                    apps: [],
+                    tips: ''
+                }
+            }
+        },
+        logistics: {
+            flights: [],
+            accommodation: [],
+            documents: {
+                passport: { 
+                    expires: '', 
+                    notes: '',
+                    checked: false
+                },
+                visa: { 
+                    required: false, 
+                    expires: '', 
+                    notes: '',
+                    checked: false
+                },
+                insurance: { 
+                    provider: '', 
+                    policyNumber: '', 
+                    notes: '',
+                    checked: false
+                },
+                tickets: { 
+                    saved: false, 
+                    notes: '',
+                    checked: false
+                },
+                other: []
+            }
+        },
+        meta: {
+            version: '1.0',
+            appVersion: '',
+            syncStatus: 'local',
+            lastBackup: '',
+            exportFormat: 'json',
+            dataSize: 0
+        },
+        offline: {
+            enabled: true,
+            downloadedMaps: false,
+            offlineContent: true,
+            lastOnlineSync: null
+        },
+        // Add these for backward compatibility
+        transportation: [],
+        accommodation: [],
+        items: {},
+        completedItems: []
+    };
+}
 
     // ===== USER PROFILE INITIALIZATION =====
     
