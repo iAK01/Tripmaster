@@ -147,6 +147,15 @@ export const countriesDatabase = {
       drivingSide: 'left',
       electricalPlug: 'G'
     },
+    'IE': {
+  timezone: 'Europe/Dublin',
+  currency: 'EUR',
+  currencySymbol: '€',
+  language: 'English',
+  emergency: '999',
+  drivingSide: 'left',
+  electricalPlug: 'G'
+},
     'NL': {
       timezone: 'Europe/Amsterdam',
       currency: 'EUR',
