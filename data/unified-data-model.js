@@ -427,19 +427,24 @@ export const UnifiedTripModel = {
   }
 };
 
-// Factory function to create a new trip
+// Helper function to generate unique trip ID
+function generateTripId() {
+    return 'trip_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// Then use it in createNewTrip
 export function createNewTrip(basicInfo = {}) {
-  const trip = JSON.parse(JSON.stringify(UnifiedTripModel)); // Deep clone
-  
-  // Set basic info
-  trip.tripInfo.id = generateTripId();
-  trip.tripInfo.created = new Date().toISOString();
-  trip.tripInfo.lastModified = new Date().toISOString();
-  
-  // Apply any provided basic info
-  Object.assign(trip.tripInfo, basicInfo);
-  
-  return trip;
+    const trip = JSON.parse(JSON.stringify(UnifiedTripModel)); // Deep clone
+    
+    // Set basic info
+    trip.tripInfo.id = generateTripId(); // Make sure generateTripId is defined above
+    trip.tripInfo.created = new Date().toISOString();
+    trip.tripInfo.lastModified = new Date().toISOString();
+    
+    // Apply any provided basic info
+    Object.assign(trip.tripInfo, basicInfo);
+    
+    return trip;
 }
 
 // Helper function to calculate travel intelligence
