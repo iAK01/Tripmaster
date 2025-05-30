@@ -898,16 +898,21 @@ async handleSave() {
    if (!tripName) return;
 
    // UNIFIED MODEL: Save the complete unified trip structure
-   const tripToSave = {
-       ...this.state.trip,
-       meta: {
-           ...this.state.trip.meta,
-           savedByUser: this.userProfile?.name || 'Anonymous',
-           savedFromLocation: this.userProfile?.homeLocation || null,
-           savedDate: new Date().toISOString(),
-           version: '2.1'
-       }
-   };
+  const tripToSave = JSON.parse(JSON.stringify(this.state.trip, (key, value) => {
+    // Remove circular references
+    if (key === 'currentTrip' || key === 'parentTrip' || key === 'tripReference') {
+        return undefined;
+    }
+    return value;
+}));
+
+tripToSave.meta = {
+    ...tripToSave.meta,
+    savedByUser: this.userProfile?.name || 'Anonymous',
+    savedFromLocation: this.userProfile?.homeLocation || null,
+    savedDate: new Date().toISOString(),
+    version: '2.1'
+};
 
    const result = this.storage.saveTripToLibrary(tripName, tripToSave);
    
