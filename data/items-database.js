@@ -548,6 +548,14 @@ export const itemsDatabase = {
                 multiplier: 0, 
                 essential: true 
             },
+            'Solo Stove - Kindling and Wood': { 
+                multiplier: 0, 
+                essential: true 
+            },
+            'Bluetti Battery AND Charger': { 
+                multiplier: 0, 
+                essential: true 
+            },
             'Sleeping pad': { 
                 multiplier: 0, 
                 essential: true,
