@@ -951,10 +951,10 @@ async handleLoadTrip() {
        this.state.trip = this.ensureUnifiedStructure(savedTrips[tripName]);
        
        // Update profile if trip contains one
-       if (this.state.trip.userProfile) {
-           this.userProfile = this.state.trip.userProfile;
-           this.updateNavigationWithProfile();
-       }
+if (this.state.trip.userProfile) {
+    this.userProfile = { ...this.state.trip.userProfile };  // COPY, don't reference
+    this.updateNavigationWithProfile();
+}
        
        // UNIFIED MODEL: Convert to simple format for TripSetup component
        this.tripSetup.loadTripData(this.convertUnifiedToSimple(this.state.trip));
