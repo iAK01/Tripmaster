@@ -1018,25 +1018,50 @@ export class ListGenerator {
     }
 
     // Keep all existing helper methods unchanged
-    calculateQuantity(itemData, nights) {
-        if (itemData.multiplier === 0) return 1;
-        
-        let quantity = Math.ceil(nights * itemData.multiplier);
-        
-        if (itemData.min && quantity < itemData.min) {
-            quantity = itemData.min;
-        }
-        
-        if (itemData.max && quantity > itemData.max) {
-            quantity = itemData.max;
-        }
-        
-        if (!itemData.max && quantity > nights + 2) {
-            quantity = nights + 2;
-        }
-        
-        return Math.max(1, quantity);
+calculateQuantity(itemData, nights) {
+    // Handle zero multiplier items (bring exactly 1)
+    if (itemData.multiplier === 0) return 1;
+    
+    // Get base quantity from multiplier
+    let quantity = Math.ceil(nights * itemData.multiplier);
+    
+    // Apply minimum if specified
+    if (itemData.min && quantity < itemData.min) {
+        quantity = itemData.min;
     }
+    
+    // Apply maximum if specified
+    if (itemData.max && quantity > itemData.max) {
+        quantity = itemData.max;
+    }
+    
+    // NEW: Smart limits based on trip duration and item type
+    // For longer trips, apply washing frequency logic
+    if (nights > 7) {
+        // Assume washing every 7-10 days for longer trips
+        const washCycles = Math.ceil(nights / 8); // Wash every 8 days
+        
+        // Items that can be washed frequently (underwear, socks, t-shirts)
+        const washableItems = ['underwear', 'socks', 't-shirt', 'shirt', 'pants'];
+        const itemNameLower = itemData.itemName ? itemData.itemName.toLowerCase() : '';
+        
+        if (washableItems.some(item => itemNameLower.includes(item))) {
+            // For washable items: base amount + 1-2 extras (not full trip duration)
+            const baseAmount = Math.min(quantity, 7); // Max 7 of washable items
+            const extraBuffer = Math.min(2, Math.ceil(nights / 14)); // 1-2 extra items
+            quantity = Math.min(quantity, baseAmount + extraBuffer);
+        }
+    }
+    
+    // Prevent excessive quantities for any item
+    const maxReasonableQuantity = Math.min(nights + 3, 10); // Never more than 10 of anything basic
+    if (!itemData.max && quantity > maxReasonableQuantity) {
+        quantity = maxReasonableQuantity;
+    }
+    
+    return Math.max(1, quantity);
+}
+
 
     calculateAverageTemperature(weather) {
         if (!weather || weather.length === 0) return 20;
@@ -1134,25 +1159,27 @@ export class ListGenerator {
         }
     }
 
-    addItemsToCategory(items, categoryKey, categoryItems, reason, nights) {
-        if (!items[categoryKey]) {
-            items[categoryKey] = {};
-        }
-        
-        for (const [itemName, itemData] of Object.entries(categoryItems)) {
-            const quantity = this.calculateQuantity(itemData, nights);
-            
-            items[categoryKey][itemName] = {
-                quantity: quantity,
-                essential: itemData.essential,
-                completed: false,
-                notes: itemData.description ? 
-                    `${itemData.description} (${reason})` : 
-                    `Added for ${reason}`,
-                multiModalEssential: itemData.multiModalEssential || false
-            };
-        }
+ addItemsToCategory(items, categoryKey, categoryItems, reason, nights) {
+    if (!items[categoryKey]) {
+        items[categoryKey] = {};
     }
+    
+    for (const [itemName, itemData] of Object.entries(categoryItems)) {
+        // Pass item name for smart quantity calculation
+        const enhancedItemData = { ...itemData, itemName: itemName };
+        const quantity = this.calculateQuantity(enhancedItemData, nights);
+        
+        items[categoryKey][itemName] = {
+            quantity: quantity,
+            essential: itemData.essential,
+            completed: false,
+            notes: itemData.description ? 
+                `${itemData.description} (${reason})` : 
+                `Added for ${reason}`,
+            multiModalEssential: itemData.multiModalEssential || false
+        };
+    }
+}
 
     parseNotesForItems(items, notes, nights) {
         const notesLower = notes.toLowerCase();
