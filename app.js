@@ -811,6 +811,16 @@ updatePackingComponents() {
                     <h2>${greeting}</h2>
                     <p>${hasTrip ? `Planning your trip to ${this.state.trip.location}` : 'Plan your perfect trip with intelligent packing'}</p>
                 </div>
+
+                ${hasTrip && this.state.trip.weather ? `
+  <div class="weather-overview">
+    <h4>🌤️ Weather Forecast</h4>
+    <div class="weather-cards-mini">
+      ${this.state.trip.weather.slice(0, 3).map(day => `
+        <div class="weather-mini">${day.icon} ${day.temp}°C</div>
+      `).join('')}
+    </div>
+  </div>
                 
                 ${hasTrip ? `
                     <div class="trip-summary-card">
