@@ -1389,30 +1389,53 @@ updatePackingComponents() {
 
     // ===== LOAD SAVED STATE =====
     
-    async loadSavedState() {
-        if (this.state.profileSetupComplete) {
-            const savedTrip = this.storage.getCurrentTrip();
+async loadSavedState() {
+    console.log('🔄 Loading saved state...');
+    
+    try {
+        const savedTrip = this.storage.getCurrentTrip();
+        
+        if (savedTrip) {
+            console.log('📂 Found saved trip data:', savedTrip.location);
             
-            if (savedTrip && savedTrip.location) {
-                this.state.trip = { ...savedTrip };
-                
-                if (!this.state.trip.userProfile && this.userProfile) {
-                    this.state.trip.userProfile = this.userProfile;
-                    this.state.trip.homeLocation = `${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}`;
-                }
-                
-                this.tripSetup.loadTripData(this.state.trip);
-                this.updateAllComponents();
-                
-                console.log(`👋 Welcome back! Restored your trip to ${this.state.trip.location}`);
-                
-                setTimeout(() => {
-                    if (this.userProfile) {
-                        this.notification.show(`👋 Welcome back ${this.userProfile.name}! Restored your trip to ${this.state.trip.location}`, 'info', 3000);
-                    }
-                }, 1000);
+            this.state.trip = { ...savedTrip };
+            
+            if (!this.state.trip.userProfile && this.userProfile) {
+                this.state.trip.userProfile = this.userProfile;
+                this.state.trip.homeLocation = `${this.userProfile.homeLocation.city}, ${this.userProfile.homeLocation.country}`;
             }
+            
+            if (this.tripSetup && this.tripSetup.loadTripData) {
+                console.log('📝 Restoring trip setup form...');
+                this.tripSetup.loadTripData(this.state.trip);
+            }
+            
+            if (this.state.trip.weather && this.state.trip.weather.length > 0) {
+                console.log('🌤️ Restoring weather data...');
+                this.weatherDisplay.displayWeather(this.state.trip.weather);
+            }
+            
+            this.updateAllComponents();
+            
+            setTimeout(() => {
+                if (this.userProfile) {
+                    this.notification.show(`👋 Welcome back ${this.userProfile.name}! Restored your trip to ${this.state.trip.location}`, 'success', 3000);
+                } else {
+                    this.notification.show(`👋 Welcome back! Restored your trip to ${this.state.trip.location}`, 'success', 3000);
+                }
+            }, 1000);
+            
+            this.determineInitialTab();
+            
+        } else {
+            console.log('📭 No saved trip found');
+            this.showInitialTab();
         }
+        
+    } catch (error) {
+        console.error('❌ Failed to load saved state:', error);
+        this.notification.show('Failed to restore previous data. Starting fresh.', 'warning', 3000);
+        this.showInitialTab();
     }
 }
 
