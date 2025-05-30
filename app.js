@@ -734,7 +734,7 @@ updatePackingComponents() {
     this.progressTracking.update(progressData);
 }
 
-  updateOverviewComponents() {
+updateOverviewComponents() {
     const overviewSection = document.getElementById('overview-section');
     if (overviewSection) {
         const greeting = this.userProfile ? `Hi ${this.userProfile.name}!` : 'Welcome to TripMaster!';
@@ -795,7 +795,35 @@ updatePackingComponents() {
             }
         }
         
-        // Build activities display
+        // Enhanced weather display for overview
+        let weatherOverviewHTML = '';
+        if (hasTrip && this.state.trip.weather && this.state.trip.weather.length > 0) {
+            // Show first 5 days of weather in overview
+            const weatherPreview = this.state.trip.weather.slice(0, 5);
+            weatherOverviewHTML = `
+                <div class="weather-overview-section">
+                    <h4>🌤️ Weather Forecast</h4>
+                    <div class="weather-cards-overview">
+                        ${weatherPreview.map(day => `
+                            <div class="weather-card-mini">
+                                <div class="weather-date">${day.date}</div>
+                                <div class="weather-icon">${day.icon}</div>
+                                <div class="weather-condition">${day.condition}</div>
+                                <div class="weather-temp">${day.temp}°C</div>
+                                <div class="weather-range">↑${day.maxTemp}° ↓${day.minTemp}°</div>
+                                ${day.chanceOfRain > 30 ? `<div class="weather-rain">☔ ${day.chanceOfRain}%</div>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                    ${this.state.trip.weather.length > 5 ? `
+                        <div class="weather-more-info">
+                            <p>+${this.state.trip.weather.length - 5} more days - <a href="#" onclick="window.tripMaster.navigation.switchTab('packing')">View full forecast in Packing tab</a></p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+// Build activities display
         let activitiesHTML = '';
         if (this.state.trip.activities && this.state.trip.activities.length > 0) {
             activitiesHTML = `
@@ -812,16 +840,7 @@ updatePackingComponents() {
                     <p>${hasTrip ? `Planning your trip to ${this.state.trip.location}` : 'Plan your perfect trip with intelligent packing'}</p>
                 </div>
 
-     ${hasTrip && this.state.trip.weather ? `
-  <div class="weather-overview">
-    <h4>🌤️ Weather Forecast</h4>
-    <div class="weather-cards-mini">
-      ${this.state.trip.weather.slice(0, 3).map(day => `
-        <div class="weather-mini">${day.icon} ${day.temp}°C</div>
-      `).join('')}
-    </div>
-  </div>
-` : ''}
+                ${weatherOverviewHTML}
                 
                 ${hasTrip ? `
                     <div class="trip-summary-card">
@@ -851,6 +870,7 @@ updatePackingComponents() {
         `;
     }
 }
+
 
     updateLocalInfoComponents() {
         const localInfoSection = document.getElementById('local-info-section');
