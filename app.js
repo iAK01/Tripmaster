@@ -898,9 +898,10 @@ async handleSave() {
    if (!tripName) return;
 
    // UNIFIED MODEL: Save the complete unified trip structure
-  const tripToSave = JSON.parse(JSON.stringify(this.state.trip, (key, value) => {
-    // Remove circular references
-    if (key === 'currentTrip' || key === 'parentTrip' || key === 'tripReference') {
+const tripToSave = JSON.parse(JSON.stringify(this.state.trip, (key, value) => {
+    // Remove ALL circular references
+    if (key === 'currentTrip' || key === 'parentTrip' || key === 'tripReference' || 
+        key === 'userProfile' || key === 'profile' || key === 'tripMaster') {
         return undefined;
     }
     return value;
