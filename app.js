@@ -812,7 +812,7 @@ updatePackingComponents() {
                     <p>${hasTrip ? `Planning your trip to ${this.state.trip.location}` : 'Plan your perfect trip with intelligent packing'}</p>
                 </div>
 
-                ${hasTrip && this.state.trip.weather ? `
+     ${hasTrip && this.state.trip.weather ? `
   <div class="weather-overview">
     <h4>🌤️ Weather Forecast</h4>
     <div class="weather-cards-mini">
@@ -821,6 +821,7 @@ updatePackingComponents() {
       `).join('')}
     </div>
   </div>
+` : ''}
                 
                 ${hasTrip ? `
                     <div class="trip-summary-card">
