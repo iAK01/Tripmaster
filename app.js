@@ -898,49 +898,42 @@ async handleSave() {
     if (!tripName) return;
 
     // UNIFIED MODEL: Create a clean copy without circular references
-    const tripToSave = JSON.parse(JSON.stringify(this.state.trip, (key, value) => {
-        // Remove ALL circular references and problematic keys
-        if (key === 'currentTrip' || key === 'parentTrip' || key === 'tripReference' || 
-            key === 'userProfile' || key === 'profile' || key === 'tripMaster' ||
-            key === '_trip' || key === '_parent' || key === '_state') {
-            return undefined;
-        }
-        
-        // Handle DOM elements or other non-serializable objects
-        if (value instanceof HTMLElement || value instanceof Window || 
-            value instanceof Document || typeof value === 'function') {
-            return undefined;
-        }
-        
-        return value;
-    }));
+// Create a clean deep copy and remove circular-prone fields
+const cleanTrip = structuredClone(this.state.trip);
+delete cleanTrip.userProfile;
+delete cleanTrip.travelIntelligence;
+delete cleanTrip.quickReference;
+delete cleanTrip.logistics;
+delete cleanTrip.weather;
+delete cleanTrip.items;
+delete cleanTrip.completedItems;
 
-    // Add metadata separately (without circular references)
-    tripToSave.meta = {
-        ...tripToSave.meta,
-        savedByUser: this.userProfile?.name || 'Anonymous',
-        savedFromLocation: this.userProfile?.homeLocation ? {
-            city: this.userProfile.homeLocation.city,
-            country: this.userProfile.homeLocation.country,
-            countryCode: this.userProfile.homeLocation.countryCode
-        } : null,
-        savedDate: new Date().toISOString(),
-        version: '2.1'
-    };
+// Add basic metadata
+cleanTrip.meta = {
+  ...cleanTrip.meta,
+  savedByUser: this.userProfile?.name || 'Anonymous',
+  savedFromLocation: this.userProfile?.homeLocation ? {
+    city: this.userProfile.homeLocation.city,
+    country: this.userProfile.homeLocation.country,
+    countryCode: this.userProfile.homeLocation.countryCode
+  } : null,
+  savedDate: new Date().toISOString(),
+  version: '2.1'
+};
 
-    // If you need to preserve user profile info, add it as a simple object
-    if (this.userProfile) {
-        tripToSave.savedUserProfile = {
-            name: this.userProfile.name,
-            homeLocation: {
-                city: this.userProfile.homeLocation.city,
-                country: this.userProfile.homeLocation.country,
-                countryCode: this.userProfile.homeLocation.countryCode
-            }
-        };
+// Add simplified user profile if needed
+if (this.userProfile) {
+  cleanTrip.savedUserProfile = {
+    name: this.userProfile.name,
+    homeLocation: {
+      city: this.userProfile.homeLocation.city,
+      country: this.userProfile.homeLocation.country,
+      countryCode: this.userProfile.homeLocation.countryCode
     }
+  };
+}
 
-    const result = this.storage.saveTripToLibrary(tripName, tripToSave);
+const result = this.storage.saveTripToLibrary(tripName, cleanTrip);
     
     if (result.success) {
         const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
