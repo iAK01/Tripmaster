@@ -1438,6 +1438,7 @@ async loadSavedState() {
         this.notification.show('Failed to restore previous data. Starting fresh.', 'warning', 3000);
         this.showInitialTab();
     }
+    
 determineInitialTab() {
     const hasBasicTrip = this.state.trip.location && this.state.trip.nights;
     const hasPackingList = this.state.trip.items && Object.keys(this.state.trip.items).length > 0;
