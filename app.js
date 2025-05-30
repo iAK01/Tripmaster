@@ -1814,24 +1814,30 @@ determineInitialTab() {
 }
 }
 
-
 function safeStringify(obj, space = null) {
-    const seen = new WeakSet();
-    return JSON.stringify(obj, (key, value) => {
-        // Skip known circular reference keys
-        if (key === 'currentTrip' || key === 'parentTrip' || key === 'tripReference' || 
-            key === 'userProfile' || key === 'profile' || key === 'trip') {
-            return undefined;
-        }
-        
-        if (typeof value === 'object' && value !== null) {
-            if (seen.has(value)) {
-                return '[Circular Reference]';
-            }
-            seen.add(value);
-        }
-        return value;
-    }, space);
+  const seen = new WeakSet();
+
+  return JSON.stringify(obj, (key, value) => {
+    // Skip known circular reference keys
+    const skipKeys = [
+      'currentTrip', 'parentTrip', 'tripReference',
+      'userProfile', 'profile', 'trip', 'tripInfo',
+      'travelIntelligence', 'weather', 'items',
+      'transportation', 'accommodation', 'quickReference',
+      'logistics', 'offline', 'completedItems'
+    ];
+
+    if (skipKeys.includes(key)) {
+      return undefined;
+    }
+
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) return '[Circular Reference]';
+      seen.add(value);
+    }
+
+    return value;
+  }, space);
 }
 
 // Override JSON.stringify globally for this app
