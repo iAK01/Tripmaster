@@ -242,6 +242,204 @@ export const countriesDatabase = {
       electricalPlug: 'A/B/C'
     }
   },
+  'CN': {
+  timezone: 'Asia/Shanghai',
+  currency: 'CNY',
+  currencySymbol: '¥',
+  language: 'Mandarin',
+  emergency: '110',
+  drivingSide: 'right',
+  electricalPlug: 'A/C/I'
+},
+'HK': {
+  timezone: 'Asia/Hong_Kong', 
+  currency: 'HKD',
+  currencySymbol: 'HK$',
+  language: 'Cantonese/English',
+  emergency: '999',
+  drivingSide: 'left',
+  electricalPlug: 'G'
+},
+'IN': {
+  timezone: 'Asia/Kolkata',
+  currency: 'INR',
+  currencySymbol: '₹',
+  language: 'Hindi/English',
+  emergency: '112',
+  drivingSide: 'left',
+  electricalPlug: 'C/D/M'
+},
+'ID': {
+  timezone: 'Asia/Jakarta',
+  currency: 'IDR',
+  currencySymbol: 'Rp',
+  language: 'Indonesian',
+  emergency: '112',
+  drivingSide: 'left',
+  electricalPlug: 'C/F'
+},
+'MY': {
+  timezone: 'Asia/Kuala_Lumpur',
+  currency: 'MYR',
+  currencySymbol: 'RM',
+  language: 'Malay/English',
+  emergency: '999',
+  drivingSide: 'left',
+  electricalPlug: 'G'
+},
+'NZ': {
+  timezone: 'Pacific/Auckland',
+  currency: 'NZD',
+  currencySymbol: 'NZ$',
+  language: 'English',
+  emergency: '111',
+  drivingSide: 'left',
+  electricalPlug: 'I'
+},
+'PH': {
+  timezone: 'Asia/Manila',
+  currency: 'PHP',
+  currencySymbol: '₱',
+  language: 'Filipino/English',
+  emergency: '117',
+  drivingSide: 'right',
+  electricalPlug: 'A/B/C'
+},
+'KR': {
+  timezone: 'Asia/Seoul',
+  currency: 'KRW',
+  currencySymbol: '₩',
+  language: 'Korean',
+  emergency: '112',
+  drivingSide: 'right',
+  electricalPlug: 'C/F'
+},
+'TW': {
+  timezone: 'Asia/Taipei',
+  currency: 'TWD',
+  currencySymbol: 'NT$',
+  language: 'Mandarin',
+  emergency: '110',
+  drivingSide: 'right',
+  electricalPlug: 'A/B'
+},
+'VN': {
+  timezone: 'Asia/Ho_Chi_Minh',
+  currency: 'VND',
+  currencySymbol: '₫',
+  language: 'Vietnamese',
+  emergency: '113',
+  drivingSide: 'right',
+  electricalPlug: 'A/C/G'
+},
+  'EG': {
+  timezone: 'Africa/Cairo',
+  currency: 'EGP',
+  currencySymbol: '£',
+  language: 'Arabic',
+  emergency: '122',
+  drivingSide: 'right',
+  electricalPlug: 'C/F'
+},
+'IL': {
+  timezone: 'Asia/Jerusalem',
+  currency: 'ILS',
+  currencySymbol: '₪',
+  language: 'Hebrew/Arabic',
+  emergency: '112',
+  drivingSide: 'right',
+  electricalPlug: 'C/H/M'
+},
+'JO': {
+  timezone: 'Asia/Amman',
+  currency: 'JOD',
+  currencySymbol: 'د.ا',
+  language: 'Arabic',
+  emergency: '911',
+  drivingSide: 'right',
+  electricalPlug: 'B/C/D/F/G/J'
+},
+'KE': {
+  timezone: 'Africa/Nairobi',
+  currency: 'KES',
+  currencySymbol: 'Sh',
+  language: 'Swahili/English',
+  emergency: '999',
+  drivingSide: 'left',
+  electricalPlug: 'G'
+},
+'MA': {
+  timezone: 'Africa/Casablanca',
+  currency: 'MAD',
+  currencySymbol: 'د.م.',
+  language: 'Arabic/French',
+  emergency: '15',
+  drivingSide: 'right',
+  electricalPlug: 'C/E'
+},
+'ZA': {
+  timezone: 'Africa/Johannesburg',
+  currency: 'ZAR',
+  currencySymbol: 'R',
+  language: 'English/Afrikaans',
+  emergency: '10111',
+  drivingSide: 'left',
+  electricalPlug: 'C/D/M/N'
+},
+'AE': {
+  timezone: 'Asia/Dubai',
+  currency: 'AED',
+  currencySymbol: 'د.إ',
+  language: 'Arabic/English',
+  emergency: '999',
+  drivingSide: 'right',
+  electricalPlug: 'C/D/G'
+},
+  'AR': {
+  timezone: 'America/Buenos_Aires',
+  currency: 'ARS',
+  currencySymbol: '$',
+  language: 'Spanish',
+  emergency: '911',
+  drivingSide: 'right',
+  electricalPlug: 'C/I'
+},
+'BR': {
+  timezone: 'America/Sao_Paulo',
+  currency: 'BRL',
+  currencySymbol: 'R$',
+  language: 'Portuguese',
+  emergency: '190',
+  drivingSide: 'right',
+  electricalPlug: 'C/N'
+},
+'CL': {
+  timezone: 'America/Santiago',
+  currency: 'CLP',
+  currencySymbol: '$',
+  language: 'Spanish',
+  emergency: '133',
+  drivingSide: 'right',
+  electricalPlug: 'C/L'
+},
+'CO': {
+  timezone: 'America/Bogota',
+  currency: 'COP',
+  currencySymbol: '$',
+  language: 'Spanish',
+  emergency: '123',
+  drivingSide: 'right',
+  electricalPlug: 'A/B'
+},
+'PE': {
+  timezone: 'America/Lima',
+  currency: 'PEN',
+  currencySymbol: 'S/',
+  language: 'Spanish',
+  emergency: '105',
+  drivingSide: 'right',
+  electricalPlug: 'A/B/C'
+}
 
   // Helper functions
   getCountryByCode(code) {
