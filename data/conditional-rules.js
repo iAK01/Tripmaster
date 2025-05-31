@@ -125,7 +125,7 @@ car: {
       'Road trip snacks': { multiplier: 0.3, essential: false }
     }
   }
-}
+},
         ferry: {
             trigger: (transportType) => transportType === 'ferry',
             items: {
