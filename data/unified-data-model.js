@@ -434,7 +434,7 @@ export const UnifiedTripModel = {
 
 // Then use it in createNewTrip
 export function createNewTrip(basicInfo = {}) {
-  const trip = JSON.parse(JSON.stringify(UnifiedTripModel));
+ const trip = structuredClone(UnifiedTripModel); // if supported
 
   if (!trip) {
     console.error('[ERROR] UnifiedTripModel is not producing a trip');
