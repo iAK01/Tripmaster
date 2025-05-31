@@ -108,20 +108,24 @@ export const conditionalRules = {
                 'Healthy snacks': { multiplier: 0, essential: false }
             }
         },
-        car: {
-            trigger: (transportType) => transportType === 'car',
-            items: {
-                'Valid driver\'s license': { multiplier: 0, essential: true },
-                'Car registration': { multiplier: 0, essential: true },
-                'Insurance card': { multiplier: 0, essential: true },
-                'Emergency roadside kit': { multiplier: 0, essential: true },
-                'Phone car charger': { multiplier: 0, essential: true },
-                'Cash for tolls': { multiplier: 0, essential: true },
-                'Paper maps backup': { multiplier: 0, essential: false },
-                'First aid kit': { multiplier: 0, essential: true },
-                'Road trip snacks': { multiplier: 0.3, essential: false }
-            }
-        },
+car: {
+  trigger: (transportType) => transportType === 'car',
+  items: {
+    car_documents: {
+      'Valid driver\'s license': { multiplier: 0, essential: true },
+      'Car registration': { multiplier: 0, essential: true },
+      'Insurance card': { multiplier: 0, essential: true }
+    },
+    car_emergency: {
+      'Emergency roadside kit': { multiplier: 0, essential: true },
+      'Phone car charger': { multiplier: 0, essential: true },
+      'Cash for tolls': { multiplier: 0, essential: true },
+      'Paper maps backup': { multiplier: 0, essential: false },
+      'First aid kit': { multiplier: 0, essential: true },
+      'Road trip snacks': { multiplier: 0.3, essential: false }
+    }
+  }
+}
         ferry: {
             trigger: (transportType) => transportType === 'ferry',
             items: {
