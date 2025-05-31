@@ -1,4 +1,4 @@
-function generateTripId() {
+export function generateTripId() {
   return 'trip_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
