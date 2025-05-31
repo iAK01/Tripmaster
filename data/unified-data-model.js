@@ -433,10 +433,6 @@ export const UnifiedTripModel = {
 
 
 // Then use it in createNewTrip
-export function generateTripId() {
-  return 'trip_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
-
 export function createNewTrip(basicInfo = {}) {
   console.log('[DEBUG] generateTripId type:', typeof generateTripId); // should log "function"
   
@@ -677,4 +673,3 @@ export const DataMigration = {
   }
 };
 
-export { generateTripId };
