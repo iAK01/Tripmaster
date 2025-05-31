@@ -434,10 +434,17 @@ export const UnifiedTripModel = {
 
 // Then use it in createNewTrip
 export function createNewTrip(basicInfo = {}) {
-  console.log('[DEBUG] generateTripId type:', typeof generateTripId); // should log "function"
-  
-  const trip = JSON.parse(JSON.stringify(UnifiedTripModel)); // Deep clone
-  trip.tripInfo.id = generateTripId(); // 💥 Fails here currently
+  const trip = JSON.parse(JSON.stringify(UnifiedTripModel));
+
+  if (!trip) {
+    console.error('[ERROR] UnifiedTripModel is not producing a trip');
+  } else if (!trip.tripInfo) {
+    console.error('[ERROR] trip.tripInfo is missing from UnifiedTripModel');
+  } else {
+    console.log('[DEBUG] Trip clone succeeded:', trip);
+  }
+
+  trip.tripInfo.id = generateTripId(); // still failing here
   trip.tripInfo.created = new Date().toISOString();
   trip.tripInfo.lastModified = new Date().toISOString();
 
