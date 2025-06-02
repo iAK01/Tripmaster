@@ -1,3 +1,4 @@
+
 // utils/storage-manager.js - Enhanced for unified data storage with itinerary support
 import { createNewTrip, DataMigration } from '../data/unified-data-model.js';
 
@@ -551,7 +552,6 @@ calculateTripCompletion(tripData) {
     }
 }
 }
-        
 
     getSavedTrips() {
         try {
