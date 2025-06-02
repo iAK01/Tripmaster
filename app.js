@@ -413,6 +413,7 @@ createEmergencyTrip() {
     
    async handleGenerateTrip(tripData) {
     try {
+       console.log('🔍 GENERATION START: this.state.trip.items =', Object.keys(this.state.trip.items || {}).length);
         console.log('🚀 Generating trip with Unified Model:', tripData);
         console.log('🚗 Transportation received:', tripData.transportation);
         console.log('🏨 Accommodation received:', tripData.accommodation);
@@ -575,8 +576,7 @@ createEmergencyTrip() {
             }
         };
 
-        const generatedItems = await this.listGenerator.generateItems(enhancedTripData);
-        
+       
         // Store in unified model
         this.state.trip.packing.items = generatedItems;
         this.state.trip.packing.generatedFrom = {
@@ -588,7 +588,10 @@ createEmergencyTrip() {
         };
         
         // Also store for backward compatibility
-        this.state.trip.items = generatedItems;
+const generatedItems = await this.listGenerator.generateItems(enhancedTripData);
+console.log('🔍 ITEMS GENERATED:', Object.keys(generatedItems).length, 'categories');
+console.log('🔍 TOTAL ITEMS:', Object.values(generatedItems).reduce((sum, cat) => sum + Object.keys(cat).length, 0));
+       
         this.state.trip.completedItems = [];
 
         // Update metadata
@@ -604,6 +607,12 @@ createEmergencyTrip() {
             accommodation: this.state.trip.accommodation,
             logistics: this.state.trip.logistics
         });
+
+       const generatedItems = await this.listGenerator.generateItems(enhancedTripData);
+console.log('🔍 ITEMS GENERATED:', Object.keys(generatedItems).length, 'categories');
+console.log('🔍 TOTAL ITEMS:', Object.values(generatedItems).reduce((sum, cat) => sum + Object.keys(cat).length, 0));
+       console.log('🔍 BEFORE updateAllComponents: items =', Object.keys(this.state.trip.items).length);
+
 
         // Update all components
         this.updateAllComponents();
@@ -766,6 +775,8 @@ updateNavigationWithProfile() {
         console.log(`👤 Navigation updated for ${this.userProfile.name}`);
     }
 }
+   console.log('🔍 BEFORE updateAllComponents: items =', Object.keys(this.state.trip.items).length);
+
 
 // ===== COMPONENT UPDATE METHODS (UNIFIED MODEL) =====
 
@@ -1304,6 +1315,8 @@ handleResetTrip() {
        this.tripSetup.reset();
        this.storage.clearCurrentTrip();
        this.updateAllComponents();
+      console.log('🔍 AFTER updateAllComponents: items =', Object.keys(this.state.trip.items).length);
+
        this.navigation.switchTab('setup');
        
        this.notification.show(`🔄${userName}, trip reset successfully! Your profile is preserved.`, 'info');
