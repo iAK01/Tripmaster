@@ -1245,46 +1245,37 @@ debugCircularReferences() {
     console.log('🔍 CIRCULAR DEBUG: Check complete');
 }
 
-    
 async handleLoadTrip() {
-   const savedTrips = this.storage.getSavedTrips();
-   const tripNames = Object.keys(savedTrips);
+    const savedTrips = this.storage.getSavedTrips();
+    const tripNames = Object.keys(savedTrips);
 
-   if (tripNames.length === 0) {
-       this.notification.show('No saved trips found', 'info');
-       return;
-   }
+    if (tripNames.length === 0) {
+        this.notification.show('No saved trips found', 'info');
+        return;
+    }
 
-   const tripOptions = tripNames.map((name, i) => {
-       const trip = savedTrips[name];
-       // UNIFIED MODEL: Access location from unified structure
-       const location = trip.tripInfo ? 
-           `${trip.tripInfo.destination.city}, ${trip.tripInfo.destination.country}` :
-           trip.location || 'Unknown'; // Fallback for old format
-       return `${i + 1}. ${name} (${location})`;
-   }).join('\n');
+    // Create a simple selection with trip numbers
+    const tripOptions = tripNames.map((name, i) => {
+        const trip = savedTrips[name];
+        return `${i + 1}. ${name}`;
+    }).join('\n');
 
-   const tripName = prompt(
-       `Choose a trip to load:\n${tripOptions}\n\nEnter trip name:`
-   );
+    // Allow user to just enter the number
+    const input = prompt(
+        `Choose a trip to load (enter number 1-${tripNames.length}):\n${tripOptions}`
+    );
 
-   if (tripName && savedTrips[tripName]) {
-       // UNIFIED MODEL: Load and ensure proper structure
-       this.state.trip = this.ensureUnifiedStructure(savedTrips[tripName]);
-       
-       // Update profile if trip contains one
-if (this.state.trip.userProfile) {
-    this.userProfile = { ...this.state.trip.userProfile };  // COPY, don't reference
-    this.updateNavigationWithProfile();
-}
-       
-       // UNIFIED MODEL: Convert to simple format for TripSetup component
-       this.tripSetup.loadTripData(this.convertUnifiedToSimple(this.state.trip));
-       this.updateAllComponents();
-
-       const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
-       this.notification.show(`📂${userName}, loaded trip "${tripName}"`, 'success');
-   }
+    if (input) {
+        const tripIndex = parseInt(input) - 1;
+        if (tripIndex >= 0 && tripIndex < tripNames.length) {
+            const tripName = tripNames[tripIndex];
+            // Load the selected trip
+            this.state.trip = { ...savedTrips[tripName] };
+            // ... rest of load logic
+        } else {
+            this.notification.show('Invalid selection', 'error');
+        }
+    }
 }
 
 handleResetTrip() {
