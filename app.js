@@ -586,11 +586,6 @@ createEmergencyTrip() {
             duration: true,
             destination: true
         };
-        
-        // Also store for backward compatibility
-const generatedItems = await this.listGenerator.generateItems(enhancedTripData);
-console.log('🔍 ITEMS GENERATED:', Object.keys(generatedItems).length, 'categories');
-console.log('🔍 TOTAL ITEMS:', Object.values(generatedItems).reduce((sum, cat) => sum + Object.keys(cat).length, 0));
        
         this.state.trip.completedItems = [];
 
