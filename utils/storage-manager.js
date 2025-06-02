@@ -551,16 +551,6 @@ calculateTripCompletion(tripData) {
     }
 }
         
-        // Count itinerary completion
-        if (tripData.itinerary && tripData.itinerary.progress && tripData.itinerary.progress.completedStops) {
-            const totalStops = this.countItineraryStops(tripData.itinerary);
-            const completedStops = tripData.itinerary.progress.completedStops.length;
-            totalItems += totalStops;
-            completedItems += completedStops;
-        }
-        
-        return totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-    }
 
     getSavedTrips() {
         try {
