@@ -41,27 +41,13 @@ saveTrip(tripData) {
         const dataToSave = {
             // Spread all existing trip data
             ...tripData,
-            
-            // EXPLICITLY preserve arrays - this is the key fix
-            transportation: Array.isArray(tripData.transportation) ? 
-                [...tripData.transportation] : 
-                (tripData.transportation ? [tripData.transportation] : []),
-            
-            accommodation: Array.isArray(tripData.accommodation) ? 
-                [...tripData.accommodation] : 
-                (tripData.accommodation ? [tripData.accommodation] : []),
-            
-            activities: Array.isArray(tripData.activities) ? 
-                [...tripData.activities] : 
-                (tripData.activities || []),
-            
-            transportationOptions: Array.isArray(tripData.transportationOptions) ? 
-                [...tripData.transportationOptions] : 
-                (tripData.transportationOptions || []),
-            
-            accommodationOptions: Array.isArray(tripData.accommodationOptions) ? 
-                [...tripData.accommodationOptions] : 
-                (tripData.accommodationOptions || []),
+            transportation: tripData.transportation || [],
+            accommodation: tripData.accommodation || [],
+            transportation: tripData.transportation || [],
+            accommodation: tripData.accommodation || [],
+            activities: tripData.activities || [],
+            transportationOptions: tripData.transportationOptions || [],
+            accommodationOptions: tripData.accommodationOptions || [],
             
             // Ensure itinerary structure exists
             itinerary: {
