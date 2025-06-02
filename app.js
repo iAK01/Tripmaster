@@ -770,7 +770,6 @@ updateNavigationWithProfile() {
         console.log(`👤 Navigation updated for ${this.userProfile.name}`);
     }
 }
-   console.log('🔍 BEFORE updateAllComponents: items =', Object.keys(this.state.trip.items).length);
 
 
 // ===== COMPONENT UPDATE METHODS (UNIFIED MODEL) =====
