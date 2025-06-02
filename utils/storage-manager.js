@@ -15,14 +15,11 @@ export class StorageManager {
 
 safeStringifyLength(obj) {
     try {
-        return JSON.stringify(obj, (key, value) => {
-            if (key === 'userProfile' || key === 'profile' || key === 'currentTrip') {
-                return undefined;
-            }
-            return value;
-        }).length;
+        // Create a deep copy to avoid modifying the original
+        const copy = JSON.parse(JSON.stringify(obj));
+        return JSON.stringify(copy).length;
     } catch (error) {
-        return 0; // Return 0 if stringify fails
+        return 0;
     }
 }
 
