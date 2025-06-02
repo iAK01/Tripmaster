@@ -1196,6 +1196,55 @@ async handleSave() {
         console.error('❌ SAVE DEBUG: Save failed:', result.error);
     }
 }
+
+// Also add this debug method to the TripMaster class:
+debugCircularReferences() {
+    console.log('🔍 CIRCULAR DEBUG: Starting comprehensive check...');
+    
+    // Check main objects
+    const objectsToCheck = {
+        'this.state': this.state,
+        'this.state.trip': this.state.trip,
+        'this.userProfile': this.userProfile,
+        'this.storage': this.storage,
+        'this.navigation': this.navigation,
+        'this.tripSetup': this.tripSetup,
+        'this.checklistDisplay': this.checklistDisplay,
+        'this.itineraryDisplay': this.itineraryDisplay
+    };
+    
+    for (const [name, obj] of Object.entries(objectsToCheck)) {
+        if (!obj) {
+            console.log(`⭕ CIRCULAR DEBUG: ${name} is null/undefined`);
+            continue;
+        }
+        
+        try {
+            JSON.stringify(obj);
+            console.log(`✅ CIRCULAR DEBUG: ${name} is JSON serializable`);
+        } catch (e) {
+            console.error(`❌ CIRCULAR DEBUG: ${name} has circular reference:`, e.message);
+            
+            if (typeof obj === 'object') {
+                console.log(`🔍 CIRCULAR DEBUG: ${name} keys:`, Object.keys(obj));
+                
+                // Check each property
+                for (const [key, value] of Object.entries(obj)) {
+                    try {
+                        JSON.stringify(value);
+                        console.log(`✅ CIRCULAR DEBUG: ${name}.${key} is OK`);
+                    } catch (e2) {
+                        console.error(`❌ CIRCULAR DEBUG: ${name}.${key} has circular reference:`, e2.message);
+                        console.log(`🔍 CIRCULAR DEBUG: ${name}.${key} type:`, typeof value);
+                    }
+                }
+            }
+        }
+    }
+    
+    console.log('🔍 CIRCULAR DEBUG: Check complete');
+}
+
     
 async handleLoadTrip() {
    const savedTrips = this.storage.getSavedTrips();
@@ -2118,6 +2167,11 @@ document.addEventListener('DOMContentLoaded', async () => {
            profile: () => tripMaster.userProfile,
            storage: () => tripMaster.storage.getStorageInfo(),
            health: () => tripMaster.storage.getStorageHealth(),
+           checkCircularRefs: () => tripMaster.debugCircularReferences(),
+           saveDebug: () => tripMaster.handleSave(),
+           tripKeys: () => Object.keys(tripMaster.state.trip),
+           userProfile: () => tripMaster.userProfile,
+           tripUserProfile: () => tripMaster.state.trip.userProfile
            unified: () => ({
                tripInfo: tripMaster.state.trip.tripInfo,
                packing: tripMaster.state.trip.packing,
