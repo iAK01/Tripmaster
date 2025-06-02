@@ -342,33 +342,6 @@ saveTrip(tripData) {
         return JSON.stringify(exportData, null, 2);
     }
 
-    countPackingItems(items) {
-    if (!items) return 0;
-    return Object.values(items).reduce((total, categoryItems) => 
-        total + Object.keys(categoryItems).length, 0);
-}
-
-countItineraryStops(itinerary) {
-    if (!itinerary || !itinerary.days) return 0;
-    return itinerary.days.reduce((total, day) => total + (day.stops ? day.stops.length : 0), 0);
-}
-
-calculateTripCompletion(tripData) {
-    let totalItems = 0;
-    let completedItems = 0;
-    
-    if (tripData.items) {
-        for (const categoryItems of Object.values(tripData.items)) {
-            for (const item of Object.values(categoryItems)) {
-                totalItems++;
-                if (item.completed) completedItems++;
-            }
-        }
-    }
-    
-    return totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-}
-
     // ===== SAVED TRIPS LIBRARY OPERATIONS (Enhanced) =====
     
 saveTripToLibrary(tripName, tripData) {
@@ -495,6 +468,32 @@ saveTripToLibrary(tripName, tripData) {
         console.error('❌ STORAGE DEBUG: saveTripToLibrary failed:', error);
         return { success: false, error: error.message };
     }
+}
+    countPackingItems(items) {
+    if (!items) return 0;
+    return Object.values(items).reduce((total, categoryItems) => 
+        total + Object.keys(categoryItems).length, 0);
+}
+
+countItineraryStops(itinerary) {
+    if (!itinerary || !itinerary.days) return 0;
+    return itinerary.days.reduce((total, day) => total + (day.stops ? day.stops.length : 0), 0);
+}
+
+calculateTripCompletion(tripData) {
+    let totalItems = 0;
+    let completedItems = 0;
+    
+    if (tripData.items) {
+        for (const categoryItems of Object.values(tripData.items)) {
+            for (const item of Object.values(categoryItems)) {
+                totalItems++;
+                if (item.completed) completedItems++;
+            }
+        }
+    }
+    
+    return totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 }
 
  
