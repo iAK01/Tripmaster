@@ -360,60 +360,166 @@ saveTrip(tripData) {
 
     // ===== SAVED TRIPS LIBRARY OPERATIONS (Enhanced) =====
     
-    saveTripToLibrary(tripName, tripData) {
+saveTripToLibrary(tripName, tripData) {
+    try {
+        console.log('🔍 STORAGE DEBUG: saveTripToLibrary called with:', tripName);
+        console.log('🔍 STORAGE DEBUG: Input tripData keys:', Object.keys(tripData));
+        
+        // Check if input data is serializable BEFORE any processing
         try {
-            const savedTrips = this.getSavedTrips();
+            JSON.stringify(tripData);
+            console.log('✅ STORAGE DEBUG: Input tripData is JSON serializable');
+        } catch (e) {
+            console.error('❌ STORAGE DEBUG: Input tripData has circular reference:', e.message);
             
-            // Ensure unique trip name
-            const uniqueName = this.ensureUniqueTripName(tripName, savedTrips);
+            // Check each property of input tripData
+            for (const [key, value] of Object.entries(tripData)) {
+                try {
+                    JSON.stringify(value);
+                    console.log(`✅ STORAGE DEBUG: tripData.${key} is OK`);
+                } catch (e2) {
+                    console.error(`❌ STORAGE DEBUG: tripData.${key} has circular reference:`, e2.message);
+                }
+            }
+        }
+        
+        const savedTrips = this.getSavedTrips();
+        console.log('🔍 STORAGE DEBUG: Got saved trips, count:', Object.keys(savedTrips).length);
+        
+        // Ensure unique trip name
+        const uniqueName = this.ensureUniqueTripName(tripName, savedTrips);
+        console.log('🔍 STORAGE DEBUG: Unique name:', uniqueName);
+        
+        // This is where the problem likely occurs - in the tripToSave creation
+        console.log('🔍 STORAGE DEBUG: Creating tripToSave object...');
+        
+        const tripToSave = {
+            ...tripData,
+            meta: {
+                ...tripData.meta,
+                savedDate: new Date().toISOString(),
+                savedName: uniqueName,
+                version: '2.0',
+                hasItinerary: !!(tripData.itinerary && tripData.itinerary.days && tripData.itinerary.days.length > 0),
+                hasPacking: !!(tripData.items && Object.keys(tripData.items).length > 0),
+                // NEW: Trip summary for library display
+                summary: {
+                    location: tripData.location,
+                    nights: tripData.nights,
+                    tripType: tripData.tripType,
+                    transportation: tripData.transportation,
+                    accommodation: tripData.accommodation,
+                    totalPackingItems: this.countPackingItems(tripData.items),
+                    totalItineraryStops: this.countItineraryStops(tripData.itinerary),
+                    completionPercentage: this.calculateTripCompletion(tripData)
+                }
+            }
+        };
+        
+        console.log('🔍 STORAGE DEBUG: tripToSave created, keys:', Object.keys(tripToSave));
+        
+        // Check if tripToSave is serializable AFTER creation
+        try {
+            JSON.stringify(tripToSave);
+            console.log('✅ STORAGE DEBUG: tripToSave is JSON serializable');
+        } catch (e) {
+            console.error('❌ STORAGE DEBUG: tripToSave has circular reference:', e.message);
             
-            // NEW: Enhanced metadata
-            const tripToSave = {
-                ...tripData,
-                meta: {
-                    ...tripData.meta,
-                    savedDate: new Date().toISOString(),
-                    savedName: uniqueName,
-                    version: '2.0',
-                    hasItinerary: !!(tripData.itinerary && tripData.itinerary.days && tripData.itinerary.days.length > 0),
-                    hasPacking: !!(tripData.items && Object.keys(tripData.items).length > 0),
-                    // NEW: Trip summary for library display
-                    summary: {
-                        location: tripData.location,
-                        nights: tripData.nights,
-                        tripType: tripData.tripType,
-                        transportation: tripData.transportation,
-                        accommodation: tripData.accommodation,
-                        totalPackingItems: this.countPackingItems(tripData.items),
-                        totalItineraryStops: this.countItineraryStops(tripData.itinerary),
-                        completionPercentage: this.calculateTripCompletion(tripData)
+            // Check each property of tripToSave
+            for (const [key, value] of Object.entries(tripToSave)) {
+                try {
+                    JSON.stringify(value);
+                    console.log(`✅ STORAGE DEBUG: tripToSave.${key} is OK`);
+                } catch (e2) {
+                    console.error(`❌ STORAGE DEBUG: tripToSave.${key} has circular reference:`, e2.message);
+                    
+                    if (key === 'meta' && typeof value === 'object') {
+                        console.log('🔍 STORAGE DEBUG: Checking meta properties...');
+                        for (const [metaKey, metaValue] of Object.entries(value)) {
+                            try {
+                                JSON.stringify(metaValue);
+                                console.log(`✅ STORAGE DEBUG: meta.${metaKey} is OK`);
+                            } catch (e3) {
+                                console.error(`❌ STORAGE DEBUG: meta.${metaKey} has circular reference:`, e3.message);
+                            }
+                        }
                     }
                 }
-            };
+            }
             
-            savedTrips[uniqueName] = tripToSave;
-            
-            localStorage.setItem(this.SAVED_TRIPS_KEY, JSON.stringify(savedTrips));
-            return { success: true, name: uniqueName };
-        } catch (error) {
-            console.error('Failed to save to library:', error);
-            return { success: false, error: error.message };
+            return { success: false, error: 'Circular reference in trip data' };
         }
+        
+        console.log('🔍 STORAGE DEBUG: Adding to savedTrips...');
+        savedTrips[uniqueName] = tripToSave;
+        
+        console.log('🔍 STORAGE DEBUG: About to stringify savedTrips for localStorage...');
+        
+        // This is likely where the circular reference error occurs
+        try {
+            const stringified = JSON.stringify(savedTrips);
+            console.log('✅ STORAGE DEBUG: savedTrips stringified successfully');
+            
+            localStorage.setItem(this.SAVED_TRIPS_KEY, stringified);
+            console.log('✅ STORAGE DEBUG: Saved to localStorage successfully');
+            
+            return { success: true, name: uniqueName };
+        } catch (stringifyError) {
+            console.error('❌ STORAGE DEBUG: JSON.stringify(savedTrips) failed:', stringifyError.message);
+            
+            // Check each trip in savedTrips
+            for (const [name, trip] of Object.entries(savedTrips)) {
+                try {
+                    JSON.stringify(trip);
+                    console.log(`✅ STORAGE DEBUG: savedTrips["${name}"] is OK`);
+                } catch (e) {
+                    console.error(`❌ STORAGE DEBUG: savedTrips["${name}"] has circular reference:`, e.message);
+                }
+            }
+            
+            return { success: false, error: stringifyError.message };
+        }
+        
+    } catch (error) {
+        console.error('❌ STORAGE DEBUG: saveTripToLibrary failed:', error);
+        return { success: false, error: error.message };
     }
+}
 
     // NEW: Helper methods for trip summaries
-    countPackingItems(items) {
-        if (!items) return 0;
-        return Object.values(items).reduce((total, categoryItems) => 
+countPackingItems(items) {
+    console.log('🔍 STORAGE DEBUG: countPackingItems called');
+    if (!items) return 0;
+    
+    try {
+        const result = Object.values(items).reduce((total, categoryItems) => 
             total + Object.keys(categoryItems).length, 0);
+        console.log('✅ STORAGE DEBUG: countPackingItems result:', result);
+        return result;
+    } catch (error) {
+        console.error('❌ STORAGE DEBUG: countPackingItems failed:', error.message);
+        return 0;
     }
+}
 
-    countItineraryStops(itinerary) {
-        if (!itinerary || !itinerary.days) return 0;
-        return itinerary.days.reduce((total, day) => total + (day.stops ? day.stops.length : 0), 0);
+countItineraryStops(itinerary) {
+    console.log('🔍 STORAGE DEBUG: countItineraryStops called');
+    if (!itinerary || !itinerary.days) return 0;
+    
+    try {
+        const result = itinerary.days.reduce((total, day) => total + (day.stops ? day.stops.length : 0), 0);
+        console.log('✅ STORAGE DEBUG: countItineraryStops result:', result);
+        return result;
+    } catch (error) {
+        console.error('❌ STORAGE DEBUG: countItineraryStops failed:', error.message);
+        return 0;
     }
+}
 
-    calculateTripCompletion(tripData) {
+calculateTripCompletion(tripData) {
+    console.log('🔍 STORAGE DEBUG: calculateTripCompletion called');
+    
+    try {
         let totalItems = 0;
         let completedItems = 0;
         
@@ -426,6 +532,24 @@ saveTrip(tripData) {
                 }
             }
         }
+        
+        // Count itinerary completion
+        if (tripData.itinerary && tripData.itinerary.progress && tripData.itinerary.progress.completedStops) {
+            const totalStops = this.countItineraryStops(tripData.itinerary);
+            const completedStops = tripData.itinerary.progress.completedStops.length;
+            totalItems += totalStops;
+            completedItems += completedStops;
+        }
+        
+        const result = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+        console.log('✅ STORAGE DEBUG: calculateTripCompletion result:', result);
+        return result;
+        
+    } catch (error) {
+        console.error('❌ STORAGE DEBUG: calculateTripCompletion failed:', error.message);
+        return 0;
+    }
+}
         
         // Count itinerary completion
         if (tripData.itinerary && tripData.itinerary.progress && tripData.itinerary.progress.completedStops) {
