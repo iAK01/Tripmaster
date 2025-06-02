@@ -487,71 +487,7 @@ saveTripToLibrary(tripName, tripData) {
     }
 }
 
-    // NEW: Helper methods for trip summaries
-countPackingItems(items) {
-    console.log('🔍 STORAGE DEBUG: countPackingItems called');
-    if (!items) return 0;
-    
-    try {
-        const result = Object.values(items).reduce((total, categoryItems) => 
-            total + Object.keys(categoryItems).length, 0);
-        console.log('✅ STORAGE DEBUG: countPackingItems result:', result);
-        return result;
-    } catch (error) {
-        console.error('❌ STORAGE DEBUG: countPackingItems failed:', error.message);
-        return 0;
-    }
-}
-
-countItineraryStops(itinerary) {
-    console.log('🔍 STORAGE DEBUG: countItineraryStops called');
-    if (!itinerary || !itinerary.days) return 0;
-    
-    try {
-        const result = itinerary.days.reduce((total, day) => total + (day.stops ? day.stops.length : 0), 0);
-        console.log('✅ STORAGE DEBUG: countItineraryStops result:', result);
-        return result;
-    } catch (error) {
-        console.error('❌ STORAGE DEBUG: countItineraryStops failed:', error.message);
-        return 0;
-    }
-}
-
-calculateTripCompletion(tripData) {
-    console.log('🔍 STORAGE DEBUG: calculateTripCompletion called');
-    
-    try {
-        let totalItems = 0;
-        let completedItems = 0;
-        
-        // Count packing completion
-        if (tripData.items) {
-            for (const categoryItems of Object.values(tripData.items)) {
-                for (const item of Object.values(categoryItems)) {
-                    totalItems++;
-                    if (item.completed) completedItems++;
-                }
-            }
-        }
-        
-        // Count itinerary completion
-        if (tripData.itinerary && tripData.itinerary.progress && tripData.itinerary.progress.completedStops) {
-            const totalStops = this.countItineraryStops(tripData.itinerary);
-            const completedStops = tripData.itinerary.progress.completedStops.length;
-            totalItems += totalStops;
-            completedItems += completedStops;
-        }
-        
-        const result = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-        console.log('✅ STORAGE DEBUG: calculateTripCompletion result:', result);
-        return result;
-        
-    } catch (error) {
-        console.error('❌ STORAGE DEBUG: calculateTripCompletion failed:', error.message);
-        return 0;
-    }
-}
-
+ 
     getSavedTrips() {
         try {
             const saved = localStorage.getItem(this.SAVED_TRIPS_KEY);
