@@ -550,6 +550,7 @@ calculateTripCompletion(tripData) {
         return 0;
     }
 }
+}
         
 
     getSavedTrips() {
