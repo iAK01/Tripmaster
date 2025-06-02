@@ -1093,68 +1093,107 @@ calculateOverallProgress() {
 // ===== SAVE & LOAD OPERATIONS (UNIFIED MODEL) =====
 
 async handleSave() {
+    console.log('🔍 SAVE DEBUG: Starting handleSave...');
+    
     const savedTrips = this.storage.getSavedTrips();
     
-    // UNIFIED MODEL: Generate name from unified structure
-    const defaultName = this.generateTripName();
+    const defaultName = this.generateTripName(this.state.trip);
     let tripName = prompt('Enter a name for this trip:', defaultName);
     
     if (!tripName) return;
 
-    // UNIFIED MODEL: Create a clean copy without circular references
-    const tripToSave = JSON.parse(JSON.stringify(this.state.trip, (key, value) => {
-        // Remove ALL circular references and problematic keys
-        if (key === 'currentTrip' || key === 'parentTrip' || key === 'tripReference' || 
-            key === 'userProfile' || key === 'profile' || key === 'tripMaster' ||
-            key === '_trip' || key === '_parent' || key === '_state' ||
-            key === 'storage' || key === 'parent' || key === 'app') {
-            return undefined;
+    // DEBUG: Check the trip object BEFORE creating tripToSave
+    console.log('🔍 SAVE DEBUG: Original this.state.trip keys:', Object.keys(this.state.trip));
+    console.log('🔍 SAVE DEBUG: userProfile exists?', !!this.userProfile);
+    console.log('🔍 SAVE DEBUG: userProfile in trip?', !!this.state.trip.userProfile);
+    
+    // Check for circular references in key objects
+    try {
+        JSON.stringify(this.userProfile);
+        console.log('✅ SAVE DEBUG: userProfile is JSON serializable');
+    } catch (e) {
+        console.error('❌ SAVE DEBUG: userProfile has circular reference:', e.message);
+        console.log('🔍 userProfile keys:', Object.keys(this.userProfile || {}));
+    }
+    
+    try {
+        JSON.stringify(this.state.trip.userProfile);
+        console.log('✅ SAVE DEBUG: trip.userProfile is JSON serializable');
+    } catch (e) {
+        console.error('❌ SAVE DEBUG: trip.userProfile has circular reference:', e.message);
+        console.log('🔍 trip.userProfile keys:', Object.keys(this.state.trip.userProfile || {}));
+    }
+    
+    // Check each property of this.state.trip individually
+    for (const [key, value] of Object.entries(this.state.trip)) {
+        try {
+            JSON.stringify(value);
+            console.log(`✅ SAVE DEBUG: trip.${key} is JSON serializable`);
+        } catch (e) {
+            console.error(`❌ SAVE DEBUG: trip.${key} has circular reference:`, e.message);
+            console.log(`🔍 trip.${key} type:`, typeof value);
+            if (typeof value === 'object' && value !== null) {
+                console.log(`🔍 trip.${key} keys:`, Object.keys(value));
+            }
         }
+    }
+
+    const tripToSave = { 
+        ...this.state.trip,
+        savedByUser: this.userProfile?.name || 'Anonymous',
+        savedFromLocation: this.userProfile?.homeLocation || null
+    };
+    
+    console.log('🔍 SAVE DEBUG: tripToSave created, keys:', Object.keys(tripToSave));
+    
+    // Check tripToSave for circular references
+    try {
+        JSON.stringify(tripToSave);
+        console.log('✅ SAVE DEBUG: tripToSave is JSON serializable');
+    } catch (e) {
+        console.error('❌ SAVE DEBUG: tripToSave has circular reference:', e.message);
         
-        // Handle DOM elements or other non-serializable objects
-        if (value instanceof HTMLElement || value instanceof Window || 
-            value instanceof Document || typeof value === 'function') {
-            return undefined;
-        }
-        
-        // Handle circular references in objects
-        if (typeof value === 'object' && value !== null) {
-            // Check if this is a component reference
-            if (value.container || value.storage || value.listGenerator) {
-                return undefined;
+        // Check each property of tripToSave individually
+        for (const [key, value] of Object.entries(tripToSave)) {
+            try {
+                JSON.stringify(value);
+                console.log(`✅ SAVE DEBUG: tripToSave.${key} is OK`);
+            } catch (e2) {
+                console.error(`❌ SAVE DEBUG: tripToSave.${key} has circular reference:`, e2.message);
+                console.log(`🔍 tripToSave.${key} type:`, typeof value);
+                if (typeof value === 'object' && value !== null) {
+                    console.log(`🔍 tripToSave.${key} keys:`, Object.keys(value));
+                    
+                    // Deep dive into object properties
+                    for (const [subKey, subValue] of Object.entries(value)) {
+                        try {
+                            JSON.stringify(subValue);
+                            console.log(`✅ SAVE DEBUG: tripToSave.${key}.${subKey} is OK`);
+                        } catch (e3) {
+                            console.error(`❌ SAVE DEBUG: tripToSave.${key}.${subKey} has circular reference:`, e3.message);
+                            console.log(`🔍 tripToSave.${key}.${subKey} type:`, typeof subValue);
+                        }
+                    }
+                }
             }
         }
         
-        return value;
-    }));
+        // Stop execution here - don't try to save
+        this.notification.show('Save failed: Circular reference detected. Check console for details.', 'error');
+        return;
+    }
 
-    // Add metadata separately (without circular references)
-    tripToSave.meta = {
-        ...(tripToSave.meta || {}),
-        savedByUser: this.userProfile?.name || 'Anonymous',
-        savedFromLocation: this.userProfile?.homeLocation ? {
-            city: this.userProfile.homeLocation.city,
-            country: this.userProfile.homeLocation.country,
-            countryCode: this.userProfile.homeLocation.countryCode
-        } : null,
-        savedDate: new Date().toISOString(),
-        version: '2.1'
-    };
-
-    // Preserve transportation and accommodation explicitly
-    tripToSave.transportation = this.state.trip.transportation || [];
-    tripToSave.accommodation = this.state.trip.accommodation || [];
+    console.log('🔍 SAVE DEBUG: About to call storage.saveTripToLibrary...');
     
-    console.log('💾 Saving trip with transportation:', tripToSave.transportation);
-    console.log('💾 Saving trip with accommodation:', tripToSave.accommodation);
-
     const result = this.storage.saveTripToLibrary(tripName, tripToSave);
     
     if (result.success) {
         const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
         this.notification.show(`💾${userName}, trip "${tripName}" saved!`, 'success');
+        console.log('✅ SAVE DEBUG: Save completed successfully');
     } else {
         this.notification.show('Failed to save trip', 'error');
+        console.error('❌ SAVE DEBUG: Save failed:', result.error);
     }
 }
     
