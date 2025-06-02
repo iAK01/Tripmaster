@@ -1320,38 +1320,47 @@ handleResetTrip() {
 }
 
 handleExport() {
-   try {
-       // UNIFIED MODEL: Export complete unified structure
-       const exportData = {
-           ...this.state.trip,
-           meta: {
-               ...this.state.trip.meta,
-               exportedAt: new Date().toISOString(),
-               exportedBy: this.userProfile?.name || 'Anonymous',
-               version: '2.1',
-               format: 'unified-trip-model'
-           }
-       };
-       
-       const dataStr = JSON.stringify(exportData, null, 2);
-       const dataBlob = new Blob([dataStr], { type: 'application/json' });
-       
-       const fileName = this.generateExportFileName();
-       
-       const link = document.createElement('a');
-       link.href = URL.createObjectURL(dataBlob);
-       link.download = fileName;
-       link.click();
-       
-       const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
-       this.notification.show(`📤${userName}, trip exported as ${fileName}`, 'success');
-       
-   } catch (error) {
-       console.error('Export failed:', error);
-       this.notification.show('Export failed. Please try again.', 'error');
-   }
+    try {
+        // Use storage manager to create a clean export (same logic as save)
+        const cleanedTrip = {
+            ...this.state.trip,
+            // Remove any potential circular references
+            userProfile: this.userProfile ? {
+                name: this.userProfile.name,
+                homeLocation: this.userProfile.homeLocation
+            } : null
+        };
+        
+        const exportData = {
+            ...cleanedTrip,
+            meta: {
+                ...cleanedTrip.meta,
+                exportedAt: new Date().toISOString(),
+                exportedBy: this.userProfile?.name || 'Anonymous',
+                version: '2.1',
+                format: 'unified-trip-model'
+            }
+        };
+        
+        // Test if it's serializable before creating blob
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        
+        const fileName = this.generateExportFileName();
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = fileName;
+        link.click();
+        
+        const userName = this.userProfile ? ` ${this.userProfile.name}` : '';
+        this.notification.show(`📤${userName}, trip exported as ${fileName}`, 'success');
+        
+    } catch (error) {
+        console.error('Export failed:', error);
+        this.notification.show('Export failed. Please try again.', 'error');
+    }
 }
-
 // ===== ITEM HANDLING METHODS (UNIFIED MODEL) =====
 
 handleItemToggle(category, itemKey) {
