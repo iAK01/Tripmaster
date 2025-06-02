@@ -2171,7 +2171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
            saveDebug: () => tripMaster.handleSave(),
            tripKeys: () => Object.keys(tripMaster.state.trip),
            userProfile: () => tripMaster.userProfile,
-           tripUserProfile: () => tripMaster.state.trip.userProfile
+           tripUserProfile: () => tripMaster.state.trip.userProfile,
            unified: () => ({
                tripInfo: tripMaster.state.trip.tripInfo,
                packing: tripMaster.state.trip.packing,
